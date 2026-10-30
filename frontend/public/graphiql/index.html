@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartLibrary - GraphiQL Interactive IDE</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            width: 100%;
+            overflow: hidden;
+            background-color: #0b0f19;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        #graphiql {
+            height: 100vh;
+        }
+    </style>
+    <!-- Stable CDNJS Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/2.4.7/graphiql.min.js" crossorigin></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/2.4.7/graphiql.min.css" />
+</head>
+<body>
+<div id="graphiql"></div>
+<script>
+    const url = window.location.origin + '/graphql';
+    const gqlFetcher = GraphiQL.createFetcher({
+        url: url
+    });
+
+    const defaultQuery = `# ⚡ SMARTLIBRARY GRAPHQL PLAYGROUND
+# Bấm nút ▶ (Execute Query) ở thanh công cụ bên trên để chạy truy vấn!
+
+query LayDanhSachSachVaDanhMuc {
+  books(page: 0, size: 5) {
+    totalElements
+    totalPages
+    content {
+      id
+      title
+      isbn
+      publisherYear
+      availableCopies
+      totalCopies
+      author {
+        id
+        name
+      }
+      category {
+        id
+        name
+      }
+    }
+  }
+}
+`;
+
+    ReactDOM.render(
+        React.createElement(GraphiQL, {
+            fetcher: gqlFetcher,
+            defaultQuery: defaultQuery,
+            defaultVariableEditorOpen: false,
+            headerEditorEnabled: true,
+            shouldPersistHeaders: true
+        }),
+        document.getElementById('graphiql')
+    );
+</script>
+</body>
+</html>

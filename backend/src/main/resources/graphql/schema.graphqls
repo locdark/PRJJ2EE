@@ -1,0 +1,174 @@
+type Query {
+    books(page: Int = 0, size: Int = 12, categoryId: ID, keyword: String): BookPage!
+    bookById(id: ID!): Book
+    featuredBooks: [Book!]!
+    categories: [Category!]!
+    authors: [Author!]!
+    publishers: [Publisher!]!
+    myBorrowRecords: [BorrowRecord!]!
+    allBorrowRecords(status: String, keyword: String): [BorrowRecord!]!
+    borrowRecordById(id: ID!): BorrowRecord
+    users: [User!]!
+    currentUser: User
+    dashboardStats: DashboardStats!
+    aiChat(message: String!): AiResponse!
+    aiRecommendBooks(interest: String!): [Book!]!
+    payments: [Payment!]!
+}
+
+type Mutation {
+    createBook(input: BookInput!): Book!
+    updateBook(id: ID!, input: BookInput!): Book!
+    deleteBook(id: ID!): Boolean!
+    
+    requestBorrow(bookId: ID!, days: Int = 14, note: String): BorrowRecord!
+    approveBorrow(recordId: ID!): BorrowRecord!
+    returnBook(recordId: ID!, damaged: Boolean = false, lost: Boolean = false): BorrowRecord!
+    renewBorrow(recordId: ID!, extraDays: Int = 7): BorrowRecord!
+    cancelBorrow(recordId: ID!): BorrowRecord!
+
+    createVNPayPayment(borrowRecordId: ID!, amount: Float!): VNPayPaymentResponse!
+    createSepayPayment(borrowRecordId: ID!, amount: Float!): SepayPaymentResponse!
+    
+    updateUserRole(userId: ID!, role: String!): User!
+    toggleUserStatus(userId: ID!): User!
+    
+    addReview(bookId: ID!, rating: Int!, comment: String): Review!
+}
+
+type BookPage {
+    content: [Book!]!
+    totalElements: Int!
+    totalPages: Int!
+    currentPage: Int!
+}
+
+type Book {
+    id: ID!
+    title: String!
+    isbn: String!
+    description: String
+    coverImage: String
+    price: Float
+    totalCopies: Int!
+    availableCopies: Int!
+    publishYear: Int
+    category: Category
+    author: Author
+    publisher: Publisher
+    shelfLocation: String
+    rating: Float
+    reviews: [Review!]
+}
+
+type Category {
+    id: ID!
+    name: String!
+    description: String
+    icon: String
+    bookCount: Int
+}
+
+type Author {
+    id: ID!
+    name: String!
+    bio: String
+}
+
+type Publisher {
+    id: ID!
+    name: String!
+    address: String
+}
+
+type User {
+    id: ID!
+    email: String!
+    fullName: String!
+    phone: String
+    avatar: String
+    address: String
+    role: String!
+    provider: String!
+    enabled: Boolean!
+    createdAt: String
+}
+
+type BorrowRecord {
+    id: ID!
+    borrowCode: String!
+    user: User!
+    book: Book!
+    borrowDate: String!
+    dueDate: String!
+    returnDate: String
+    status: String!
+    fineAmount: Float
+    notes: String
+}
+
+type Payment {
+    id: ID!
+    transactionId: String!
+    user: User!
+    borrowRecord: BorrowRecord
+    amount: Float!
+    paymentMethod: String!
+    status: String!
+    paymentDate: String
+    orderInfo: String
+}
+
+type Review {
+    id: ID!
+    user: User!
+    rating: Int!
+    comment: String
+    createdAt: String
+}
+
+type DashboardStats {
+    totalBooks: Int!
+    totalReaders: Int!
+    activeBorrowings: Int!
+    overdueBorrowings: Int!
+    totalRevenue: Float!
+    recentBorrows: [BorrowRecord!]!
+    popularBooks: [Book!]!
+}
+
+type AiResponse {
+    reply: String!
+    recommendedBooks: [Book!]
+    suggestedTopics: [String!]
+}
+
+type VNPayPaymentResponse {
+    paymentUrl: String!
+    transactionId: String!
+    amount: Float!
+}
+
+type SepayPaymentResponse {
+    qrUrl: String!
+    accountNumber: String!
+    bankCode: String!
+    accountName: String!
+    amount: Float!
+    paymentCode: String!
+    transactionId: String!
+}
+
+input BookInput {
+    title: String!
+    isbn: String!
+    description: String
+    coverImage: String
+    price: Float
+    totalCopies: Int!
+    publishYear: Int
+    categoryId: ID!
+    authorId: ID!
+    publisherId: ID!
+    shelfLocation: String
+}

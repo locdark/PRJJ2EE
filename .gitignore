@@ -1,0 +1,33 @@
+# Dependencies & Build Folders
+**/node_modules/
+**/dist/
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS Files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs & Temp files
+*.log
+*.tmp
+*.bak
+*.swp
+*.tar.gz
+*.zip
+
+# Local Environment Variables
+.env
+.env.local
+.env.*.local
