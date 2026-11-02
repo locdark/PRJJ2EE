@@ -5,7 +5,12 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", indexes = {
+        @Index(name = "idx_payment_user", columnList = "user_id"),
+        @Index(name = "idx_payment_borrow", columnList = "borrow_record_id"),
+        @Index(name = "idx_payment_status", columnList = "status"),
+        @Index(name = "idx_payment_txn_ref", columnList = "vnp_txn_ref")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,6 +24,9 @@ public class Payment {
 
     @Column(nullable = false, unique = true)
     private String transactionId;
+
+    @Column(name = "vnp_txn_ref")
+    private String vnpTxnRef;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)

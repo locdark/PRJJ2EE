@@ -179,11 +179,20 @@ export async function testCloudflare(apiKey, zoneId) {
   return await res.json();
 }
 
-export async function testGeminiApi(apiKey, model) {
+export async function testGeminiApi(apiKey, model, prompt = null) {
   const res = await fetch(`${BASE_URL}/api/settings/test-gemini`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ apiKey, model }),
+    body: JSON.stringify({ apiKey, model, prompt }),
+  });
+  return await res.json();
+}
+
+export async function listGeminiModels(apiKey) {
+  const res = await fetch(`${BASE_URL}/api/settings/gemini-models`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey }),
   });
   return await res.json();
 }

@@ -29,12 +29,6 @@ public class BorrowGraphQLController {
     public List<BorrowRecord> myBorrowRecords() {
         User user = authService.getCurrentUser();
         if (user == null) {
-            user = userRepository.findByEmail("reader@library.com")
-                    .orElseGet(() -> userRepository.findAll().stream()
-                            .filter(u -> u.getRole() == Role.ROLE_READER)
-                            .findFirst().orElse(null));
-        }
-        if (user == null) {
             return Collections.emptyList();
         }
         return borrowService.getMyBorrowRecords(user.getId());
@@ -55,6 +49,7 @@ public class BorrowGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DashboardStatsDto dashboardStats() {
         return borrowService.getDashboardStatistics();
     }
@@ -67,14 +62,7 @@ public class BorrowGraphQLController {
     ) {
         User user = authService.getCurrentUser();
         if (user == null) {
-            // Auto fallback to default reader if session expired during demo/testing
-            user = userRepository.findByEmail("reader@library.com")
-                    .orElseGet(() -> userRepository.findAll().stream()
-                            .filter(u -> u.getRole() == Role.ROLE_READER)
-                            .findFirst().orElse(null));
-        }
-        if (user == null) {
-            throw new RuntimeException("Vui lòng đăng nhập để mượn sách!");
+            throw new RuntimeException("Vui lòng đăng nhập tài khoản độc giả để mượn sách!");
         }
         return borrowService.requestBorrow(user, bookId, days != null ? days : 14, note);
     }
@@ -100,11 +88,19 @@ public class BorrowGraphQLController {
             @Argument Long recordId,
             @Argument(name = "extraDays") Integer extraDays
     ) {
+        User user = authService.getCurrentUser();
+        if (user == null) {
+            throw new RuntimeException("Vui lòng đăng nhập để gia hạn sách!");
+        }
         return borrowService.renewBorrow(recordId, extraDays != null ? extraDays : 7);
     }
 
     @MutationMapping
     public BorrowRecord cancelBorrow(@Argument Long recordId) {
+        User user = authService.getCurrentUser();
+        if (user == null) {
+            throw new RuntimeException("Vui lòng đăng nhập để hủy yêu cầu mượn sách!");
+        }
         return borrowService.cancelBorrow(recordId);
     }
 }

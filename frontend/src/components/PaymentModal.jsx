@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, QrCode, CreditCard, CheckCircle2, Copy, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { createVNPayUrl, createSepayQR } from '../services/api';
+import { createVNPayUrl, createSepayQR, checkSepayStatus } from '../services/api';
+import { showToast } from './Toast';
 
 export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 30000, onSuccess }) {
   const [method, setMethod] = useState('sepay'); // 'sepay' or 'vnpay'
@@ -18,6 +19,27 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
       loadPaymentOptions();
     }
   }, [isOpen, borrowRecord, amount]);
+
+  // Tự động kiểm tra trạng thái thanh toán từ Webhook SePay mỗi 2 giây
+  useEffect(() => {
+    if (!isOpen || !sepayData?.transactionId || paymentSuccess) return;
+
+    const timer = setInterval(async () => {
+      try {
+        const payment = await checkSepayStatus(sepayData.transactionId);
+        if (payment && payment.status === 'SUCCESS') {
+          setPaymentSuccess(true);
+          triggerConfetti();
+          showToast('🎉 Đã nhận chuyển khoản ngân hàng thành công!', 'success');
+          if (onSuccess) onSuccess();
+        }
+      } catch (e) {
+        // tiếp tục chờ webhook
+      }
+    }, 2000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, sepayData, paymentSuccess, onSuccess]);
 
   const loadPaymentOptions = async () => {
     setLoading(true);
@@ -50,41 +72,20 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
   };
 
   const handleSimulateSepayWebhook = async () => {
-    if (!sepayData) return;
+    if (!sepayData?.transactionId) return;
     setPolling(true);
     try {
-      const payload = {
-        id: Math.floor(Math.random() * 900000) + 100000,
-        gateway: sepayData.bankCode,
-        transactionDate: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        accountNumber: sepayData.accountNumber,
-        content: sepayData.paymentCode,
-        transferType: 'in',
-        transferAmount: sepayData.amount,
-        referenceCode: 'MB' + Math.floor(Math.random() * 9000000),
-        description: 'Chuyen tien thanh toan ' + sepayData.paymentCode
-      };
-
-      const res = await fetch('/api/sepay/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Apikey SEPAY_DEMO_SECRET_API_KEY'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
+      const payment = await checkSepayStatus(sepayData.transactionId);
+      if (payment && payment.status === 'SUCCESS') {
         setPaymentSuccess(true);
         triggerConfetti();
+        showToast('🎉 Đã xác nhận thanh toán ngân hàng thành công!', 'success');
         if (onSuccess) onSuccess();
       } else {
-        setPaymentSuccess(true);
-        triggerConfetti();
+        showToast('Hệ thống đang chờ thông báo biến động số dư từ TPBank (tự động cập nhật ngay khi tiền vào)...', 'info');
       }
     } catch (err) {
-      setPaymentSuccess(true);
-      triggerConfetti();
+      showToast('Không thể kiểm tra trạng thái giao dịch lúc này.', 'warning');
     } finally {
       setPolling(false);
     }
@@ -296,7 +297,11 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
                   </div>
                 </div>
 
-                {/* Simulated Live Webhook */}
+                {/* Live Webhook Polling & Manual Check */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.78rem', color: '#0e7490', fontWeight: '700', marginBottom: '8px', background: '#ecfeff', padding: '7px 10px', borderRadius: '8px', border: '1px dashed #67e8f9' }}>
+                  <Loader2 size={14} className="animate-spin" />
+                  Đang tự động chờ ngân hàng xác nhận chuyển khoản (2 giây/lần)...
+                </div>
                 <button 
                   onClick={handleSimulateSepayWebhook}
                   disabled={polling}
@@ -319,7 +324,7 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
                   }}
                 >
                   {polling ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
-                  ⚡ Xác nhận chuyển khoản SePay thành công
+                  🔄 Tôi Đã Chuyển Khoản — Kiểm Tra Ngay
                 </button>
               </div>
             ) : (

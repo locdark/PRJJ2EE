@@ -187,6 +187,13 @@ export const GET_DASHBOARD_STATS = `
         fullName
         email
       }
+      borrowRecord {
+        id
+        borrowCode
+        book {
+          title
+        }
+      }
     }
   }
 `;

@@ -6,7 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "books")
+@Table(name = "books", indexes = {
+        @Index(name = "idx_book_category", columnList = "category_id"),
+        @Index(name = "idx_book_author", columnList = "author_id"),
+        @Index(name = "idx_book_rating", columnList = "rating"),
+        @Index(name = "idx_book_title", columnList = "title")
+})
 @Getter
 @Setter
 @NoArgsConstructor

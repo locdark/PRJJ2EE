@@ -12,7 +12,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +49,14 @@ public class BookService {
 
     public List<Category> getCategories() {
         List<Category> categories = categoryRepository.findAll();
+        Map<Long, Integer> countsByCategoryId = new HashMap<>();
+        for (Object[] row : categoryRepository.countBooksByCategory()) {
+            if (row[0] != null && row[1] != null) {
+                countsByCategoryId.put(((Number) row[0]).longValue(), ((Number) row[1]).intValue());
+            }
+        }
         for (Category cat : categories) {
-            cat.setBookCount((int) bookRepository.countByCategoryId(cat.getId()));
+            cat.setBookCount(countsByCategoryId.getOrDefault(cat.getId(), 0));
         }
         return categories;
     }
@@ -138,10 +146,10 @@ public class BookService {
 
         Review saved = reviewRepository.save(review);
 
-        // Cập nhật rating trung bình
-        List<Review> reviews = reviewRepository.findByBookIdOrderByCreatedAtDesc(bookId);
-        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(5.0);
-        book.setRating(Math.round(avg * 10.0) / 10.0);
+        // Cập nhật rating trung bình bằng câu lệnh SQL AVG trực tiếp
+        Double avg = reviewRepository.getAverageRatingByBookId(bookId);
+        double effectiveAvg = avg != null ? avg : 5.0;
+        book.setRating(Math.round(effectiveAvg * 10.0) / 10.0);
         bookRepository.save(book);
 
         return saved;

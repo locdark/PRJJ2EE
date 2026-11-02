@@ -14,6 +14,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByTransactionId(String transactionId);
     List<Payment> findByUserIdOrderByPaymentDateDesc(Long userId);
     List<Payment> findAllByOrderByPaymentDateDesc();
+    List<Payment> findByStatusOrderByPaymentDateDesc(PaymentStatus status);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0.0) FROM Payment p WHERE p.status = :status")
     Double sumAmountByStatus(PaymentStatus status);

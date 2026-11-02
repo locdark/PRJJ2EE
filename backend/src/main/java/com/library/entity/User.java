@@ -1,11 +1,15 @@
 package com.library.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_role", columnList = "role"),
+        @Index(name = "idx_user_student_id", columnList = "student_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +24,11 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @JsonIgnore
     private String password;
+
+    @Column(name = "student_id")
+    private String studentId;
 
     @Column(nullable = false)
     private String fullName;

@@ -128,8 +128,8 @@ export default function PolicyModal({ isOpen, onClose, activeTab = 'rules' }) {
               <p>Thư viện cam kết bảo mật tuyệt đối thông tin định danh và dữ liệu học thuật của độc giả theo đúng quy định pháp luật Việt Nam:</p>
               <ul style={{ paddingLeft: '20px', margin: '14px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <li><strong>Dữ liệu thu thập:</strong> Họ và tên, mã số sinh viên / độc giả, địa chỉ email, số điện thoại, lịch sử mượn trả tài liệu.</li>
-                <li><strong>Mục đích sử dụng:</strong> Xác thực tài khoản, gửi thông báo nhắc hạn trả sách qua Spring Email, lập hóa đơn điện tử và liên lạc hỗ trợ khi phát sinh yêu cầu.</li>
-                <li><strong>Mã hóa bảo mật:</strong> Mật khẩu độc giả được băm bảo mật bằng thuật toán BCrypt. Các phiên làm việc được chứng thực thông qua mã thông báo JWT (JSON Web Token) có thời hạn hiệu lực.</li>
+                <li><strong>Mục đích sử dụng:</strong> Xác thực thẻ bạn đọc, gửi thông báo nhắc hạn trả sách qua thư điện tử nhà trường, lập biên lai thu phí và liên lạc hỗ trợ độc giả.</li>
+                <li><strong>Mã hóa &amp; An toàn thông tin:</strong> Hồ sơ độc giả và mật khẩu được mã hóa theo tiêu chuẩn an toàn thông tin cấp độ 3, bảo vệ toàn vẹn phiên tra cứu của sinh viên và giảng viên.</li>
                 <li><strong>Không chia sẻ bên thứ ba:</strong> Thư viện tuyệt đối không mua bán, trao đổi hoặc cung cấp dữ liệu độc giả cho bất kỳ đơn vị quảng cáo nào.</li>
               </ul>
             </div>

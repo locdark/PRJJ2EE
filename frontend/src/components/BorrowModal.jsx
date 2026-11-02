@@ -5,8 +5,9 @@ import {
   Copy, ExternalLink, Loader2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { graphqlQuery, restLogin, createSepayQR, createVNPayUrl } from '../services/api';
+import { graphqlQuery, restLogin, createSepayQR, createVNPayUrl, checkSepayStatus } from '../services/api';
 import { REQUEST_BORROW } from '../services/graphqlQueries';
+import { showToast } from './Toast';
 
 export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMyBorrowings }) {
   // Đơn giá thuê: 2.000 VNĐ / ngày
@@ -52,6 +53,31 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
       setSimulatingWebhook(false);
     }
   }, [isOpen, book, defaultDueDate]);
+
+  // Tự động kiểm tra trạng thái thanh toán thực tế từ Webhook SePay mỗi 2 giây
+  useEffect(() => {
+    if (!isOpen || !sepayData?.transactionId || isPaid) return;
+
+    const timer = setInterval(async () => {
+      try {
+        const payment = await checkSepayStatus(sepayData.transactionId);
+        if (payment && payment.status === 'SUCCESS') {
+          setIsPaid(true);
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+          showToast('🎉 Đã nhận chuyển khoản ngân hàng thành công!', 'success');
+          if (onSuccess) onSuccess();
+        }
+      } catch (e) {
+        // tiếp tục chờ webhook
+      }
+    }, 2000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, sepayData, isPaid, onSuccess]);
 
   if (!isOpen || !book) return null;
 
@@ -106,39 +132,24 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
   };
 
   const handleSimulateSepayWebhook = async () => {
-    if (!sepayData) return;
+    if (!sepayData?.transactionId) return;
     setSimulatingWebhook(true);
     try {
-      const payload = {
-        id: Math.floor(Math.random() * 900000) + 100000,
-        gateway: sepayData.bankCode,
-        transactionDate: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        accountNumber: sepayData.accountNumber,
-        content: sepayData.paymentCode,
-        transferType: 'in',
-        transferAmount: sepayData.amount,
-        referenceCode: 'MB' + Math.floor(Math.random() * 9000000),
-        description: 'Chuyen tien thue sach ' + sepayData.paymentCode
-      };
-
-      await fetch('/api/sepay/webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Apikey SEPAY_DEMO_SECRET_API_KEY'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      setIsPaid(true);
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
-      if (onSuccess) onSuccess();
+      const payment = await checkSepayStatus(sepayData.transactionId);
+      if (payment && payment.status === 'SUCCESS') {
+        setIsPaid(true);
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+        showToast('🎉 Đã xác nhận thanh toán ngân hàng thành công!', 'success');
+        if (onSuccess) onSuccess();
+      } else {
+        showToast('Hệ thống đang chờ thông báo biến động số dư từ TPBank (tự động cập nhật ngay khi tiền vào)...', 'info');
+      }
     } catch (err) {
-      setIsPaid(true);
+      showToast('Không thể kiểm tra trạng thái giao dịch lúc này.', 'warning');
     } finally {
       setSimulatingWebhook(false);
     }
@@ -152,31 +163,11 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
     try {
       const formattedNote = `[Thuê ${daysCount} ngày • Phí thuê: ${totalRentalFee.toLocaleString('vi-VN')} đ • PTTT: ${paymentMethod === 'COUNTER' ? 'Tại quầy' : paymentMethod === 'SEPAY' ? 'VietQR SePay' : 'VNPay'}] ${note ? '- ' + note : ''}`;
       
-      let data;
-      try {
-        data = await graphqlQuery(REQUEST_BORROW, {
-          bookId: book.id,
-          days: daysCount,
-          note: formattedNote
-        });
-      } catch (firstErr) {
-        // Tự động làm mới phiên đăng nhập nếu token hết hạn
-        if (firstErr.message && (firstErr.message.includes('token') || firstErr.message.includes('Expired') || firstErr.message.includes('đăng nhập') || firstErr.message.includes('INTERNAL_ERROR') || firstErr.message.includes('Error'))) {
-          try {
-            const authData = await restLogin('reader@library.com', 'reader123');
-            localStorage.setItem('library_token', authData.token);
-            data = await graphqlQuery(REQUEST_BORROW, {
-              bookId: book.id,
-              days: daysCount,
-              note: formattedNote
-            }, authData.token);
-          } catch (retryErr) {
-            throw firstErr;
-          }
-        } else {
-          throw firstErr;
-        }
-      }
+      const data = await graphqlQuery(REQUEST_BORROW, {
+        bookId: book.id,
+        days: daysCount,
+        note: formattedNote
+      });
 
       setSuccessRecord(data.requestBorrow);
       confetti({
@@ -321,31 +312,37 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
                   </div>
                 )}
 
-                {/* Nút mô phỏng khớp lệnh SePay */}
+                {/* Trạng thái tự động lắng nghe Webhook SePay & nút kiểm tra ngay */}
                 {!isPaid ? (
-                  <button 
-                    type="button"
-                    onClick={handleSimulateSepayWebhook}
-                    disabled={simulatingWebhook || !sepayData}
-                    style={{ 
-                      width: '100%', 
-                      padding: '10px', 
-                      borderRadius: '8px',
-                      background: '#0891b2', 
-                      color: '#ffffff', 
-                      border: 'none', 
-                      fontSize: '0.8rem', 
-                      fontWeight: '800', 
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    {simulatingWebhook ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
-                    {simulatingWebhook ? 'Đang xác thực giao dịch SePay...' : '⚡ Mô Phỏng Đã Quét Mã & Thanh Toán Thành Công'}
-                  </button>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.78rem', color: '#0e7490', fontWeight: '700', marginBottom: '8px', background: '#ecfeff', padding: '7px 10px', borderRadius: '8px', border: '1px dashed #67e8f9' }}>
+                      <Loader2 size={14} className="animate-spin" />
+                      Đang tự động chờ ngân hàng xác nhận chuyển khoản (2 giây/lần)...
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={handleSimulateSepayWebhook}
+                      disabled={simulatingWebhook || !sepayData}
+                      style={{ 
+                        width: '100%', 
+                        padding: '10px', 
+                        borderRadius: '8px',
+                        background: '#0891b2', 
+                        color: '#ffffff', 
+                        border: 'none', 
+                        fontSize: '0.8rem', 
+                        fontWeight: '800', 
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      {simulatingWebhook ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                      {simulatingWebhook ? 'Đang kiểm tra giao dịch...' : '🔄 Tôi Đã Chuyển Khoản — Kiểm Tra Ngay'}
+                    </button>
+                  </div>
                 ) : (
                   <div style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '8px', borderRadius: '8px', fontWeight: '800', fontSize: '0.825rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                     <CheckCircle2 size={16} /> ĐÃ HOÀN TẤT THANH TOÁN TIỀN THUÊ QUA VIETQR SEPAY
@@ -645,7 +642,7 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
                 <input 
                   type="text" 
                   className="input-field" 
-                  placeholder="Ví dụ: Mượn phục vụ nghiên cứu đề tài J2EE..." 
+                  placeholder="Ví dụ: Mượn phục vụ tiểu luận môn học / khóa luận tốt nghiệp..." 
                   value={note} 
                   onChange={(e) => setNote(e.target.value)} 
                   style={{ width: '100%', padding: '8px 12px', fontSize: '0.85rem', color: '#0f172a', background: '#ffffff', border: '1px solid #cbd5e1' }}

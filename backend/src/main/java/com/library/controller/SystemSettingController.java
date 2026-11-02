@@ -76,8 +76,20 @@ public class SystemSettingController {
     @PostMapping("/test-gemini")
     public ResponseEntity<Map<String, Object>> testGemini(@RequestBody Map<String, String> body) {
         String apiKey = body.getOrDefault("apiKey", "");
-        String model = body.getOrDefault("model", "gemini-1.5-flash");
-        return ResponseEntity.ok(aiLibrarianService.testGeminiConnection(apiKey, model));
+        String model = body.getOrDefault("model", "gemini-flash-lite-latest");
+        String prompt = body.getOrDefault("prompt", null);
+        return ResponseEntity.ok(aiLibrarianService.testGeminiConnection(apiKey, model, prompt));
+    }
+
+    @GetMapping("/gemini-models")
+    public ResponseEntity<Map<String, Object>> listGeminiModels(@RequestParam(required = false) String apiKey) {
+        return ResponseEntity.ok(aiLibrarianService.listAvailableGeminiModels(apiKey));
+    }
+
+    @PostMapping("/gemini-models")
+    public ResponseEntity<Map<String, Object>> listGeminiModelsPost(@RequestBody(required = false) Map<String, String> body) {
+        String apiKey = body != null ? body.getOrDefault("apiKey", "") : "";
+        return ResponseEntity.ok(aiLibrarianService.listAvailableGeminiModels(apiKey));
     }
 
     @PostMapping("/test-oauth")

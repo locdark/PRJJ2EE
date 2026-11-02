@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Settings, Globe, CreditCard, Cloud, Database, Palette, Save, 
   CheckCircle2, AlertCircle, RefreshCw, Server, Shield, Sparkles, 
-  QrCode, ExternalLink, HardDrive, Key, Sliders, Check, Eye, EyeOff, Bot, Zap
+  QrCode, ExternalLink, HardDrive, Key, Sliders, Check, Eye, EyeOff, Bot, Zap, Copy
 } from 'lucide-react';
-import { getSystemSettings, updateSystemSettings, testDatabase, testCloudflare, testGeminiApi, testOAuth } from '../services/api';
+import { getSystemSettings, updateSystemSettings, testDatabase, testCloudflare, testGeminiApi, listGeminiModels, testOAuth } from '../services/api';
+import { showToast } from '../components/Toast';
 
 export default function AdminSettingsView({ 
   onThemeChange, 
@@ -41,24 +42,46 @@ export default function AdminSettingsView({
   const [showFbSecret, setShowFbSecret] = useState(false);
   const [showDbPassword, setShowDbPassword] = useState(false);
 
+  // Live VietQR Preview & Reconciliation Mode states
+  const [previewAmount, setPreviewAmount] = useState(50000);
+  const [previewMemo, setPreviewMemo] = useState('LIB2026 HD1024');
+  const [sepayReconcileMode, setSepayReconcileMode] = useState('HYBRID');
+  const [testingSepayFlow, setTestingSepayFlow] = useState(false);
+  const [sepayTestResult, setSepayTestResult] = useState(null);
+
+  // Gemini Live Model Scanner & Test Playground states
+  const [scanningModels, setScanningModels] = useState(false);
+  const [availableGeminiModels, setAvailableGeminiModels] = useState([
+    { id: 'gemini-flash-lite-latest', displayName: 'Gemini Flash-Lite Latest (Khuyên dùng • Siêu nhanh & Ổn định)' },
+    { id: 'gemini-2.5-flash-lite', displayName: 'Gemini 2.5 Flash-Lite (Tốc độ cao • Tiết kiệm Quota)' },
+    { id: 'gemini-3.1-flash-lite', displayName: 'Gemini 3.1 Flash Lite (Thế hệ 3.1 • Tư vấn thông minh)' },
+    { id: 'gemini-3.5-flash-lite', displayName: 'Gemini 3.5 Flash Lite (Thế hệ 3.5 • Phản hồi tự nhiên)' },
+    { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash (Đa nhiệm • Suy luận sâu)' },
+    { id: 'gemini-flash-latest', displayName: 'Gemini Flash Latest (Bản chuẩn mới nhất)' },
+    { id: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro (Chuyên gia • Phân tích học thuật chuyên sâu)' },
+  ]);
+  const [geminiTestPrompt, setGeminiTestPrompt] = useState(
+    'Chào shop, tư vấn giúp mình 2 cuốn sách lập trình cho người mới bắt đầu và báo giá thuê 14 ngày nhé!'
+  );
+
   // Form states
   const [form, setForm] = useState({
     siteTitle: 'SmartLibrary',
-    siteSubtitle: 'Hệ Thống Quản Lý Thư Viện Số Thế Hệ Mới',
+    siteSubtitle: 'Hệ Thống Quản Lý Thư Viện Đại Học',
     logoUrl: '',
     contactEmail: 'support@smartlibrary.edu.vn',
     contactPhone: '1900 6868',
     address: '828 Sư Vạn Hạnh, Phường 13, Quận 10, TP. Hồ Chí Minh',
     openingHours: '07:30 - 21:00 (Thứ 2 - Thứ 7)',
     vnpTmnCode: '2QXUI4B4',
-    vnpHashSecret: 'AXYZBOPQRETUVWXKLMN1234567890ABC',
+    vnpHashSecret: '',
     vnpPayUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
     sepayAccountNumber: '0388888888',
     sepayBankCode: 'MBBank',
-    sepayAccountName: 'SMART LIBRARY HUFLIT',
-    sepayApiKey: 'SEPAY_DEMO_SECRET_API_KEY',
-    cloudflareApiKey: 'clf_api_token_live_998124a87c',
-    cloudflareZoneId: 'zone_id_smartlibrary_001',
+    sepayAccountName: 'TRUNG TAM THU VIEN DAI HOC',
+    sepayApiKey: '',
+    cloudflareApiKey: '',
+    cloudflareZoneId: '',
     cloudflareAccountEmail: 'admin@smartlibrary.edu.vn',
     cloudflareProxyEnabled: true,
     lateFinePerDay: 5000,
@@ -67,25 +90,25 @@ export default function AdminSettingsView({
     moitVerificationEnabled: true,
     themeName: 'emerald-scholar',
     geminiApiKey: '',
-    geminiModel: 'gemini-1.5-flash',
+    geminiModel: 'gemini-flash-lite-latest',
     geminiEnabled: true,
-    geminiSystemPrompt: 'Bạn là Trợ lý Thủ thư AI thông minh của Thư viện Số SmartLibrary. Hãy tư vấn giáo trình, phương pháp học tập và gợi ý chính xác sách trong thư viện bằng tiếng Việt chuẩn mực, thân thiện.',
-    googleClientId: '109827364521-smartlibrary.apps.googleusercontent.com',
-    googleClientSecret: 'GOCSPX-demo_google_client_secret_xyz123',
-    googleRedirectUri: 'http://localhost:5173/auth/callback/google',
+    geminiSystemPrompt: 'Bạn là Trợ lý Thủ thư AI thông minh của Trung tâm Thông tin – Thư viện Đại học. Hãy tư vấn giáo trình, phương pháp học tập và gợi ý chính xác sách trong thư viện bằng tiếng Việt chuẩn mực, thân thiện.',
+    googleClientId: '',
+    googleClientSecret: '',
+    googleRedirectUri: `${window.location.origin}/auth/callback/google`,
     googleOAuthEnabled: true,
-    facebookAppId: '108927164928374',
-    facebookAppSecret: 'fb_sec_89283472891238918237',
-    facebookRedirectUri: 'http://localhost:5173/auth/callback/facebook',
+    facebookAppId: '',
+    facebookAppSecret: '',
+    facebookRedirectUri: `${window.location.origin}/auth/callback/facebook`,
     facebookOAuthEnabled: true,
-    dbType: 'POSTGRESQL',
-    dbHost: 'localhost',
-    dbPort: '5432',
-    dbName: 'smart_library_db',
-    dbUsername: 'postgres',
-    dbPassword: 'root_password_123',
-    dbJdbcUrl: 'jdbc:postgresql://localhost:5432/smart_library_db',
-    dbDriverClassName: 'org.postgresql.Driver',
+    dbType: 'MYSQL',
+    dbHost: 'mysqldb',
+    dbPort: '3306',
+    dbName: 'library_db',
+    dbUsername: 'root',
+    dbPassword: 'root',
+    dbJdbcUrl: 'jdbc:mysql://mysqldb:3306/library_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC',
+    dbDriverClassName: 'com.mysql.cj.jdbc.Driver',
     dbMaxPoolSize: 10,
     dbMinIdle: 5
   });
@@ -99,7 +122,32 @@ export default function AdminSettingsView({
     try {
       const data = await getSystemSettings();
       if (data) {
-        setForm(prev => ({ ...prev, ...data }));
+        const cleaned = { ...data };
+        if (cleaned.googleClientId === '109827364521-smartlibrary.apps.googleusercontent.com') {
+          cleaned.googleClientId = '';
+        }
+        if (cleaned.googleClientSecret === 'GOCSPX-demo_google_client_secret_xyz123') {
+          cleaned.googleClientSecret = '';
+        }
+        if (
+          !cleaned.googleRedirectUri ||
+          cleaned.googleRedirectUri.includes('localhost:5173')
+        ) {
+          cleaned.googleRedirectUri = `${window.location.origin}/auth/callback/google`;
+        }
+        if (cleaned.facebookAppId === '108927164928374') {
+          cleaned.facebookAppId = '';
+        }
+        if (cleaned.facebookAppSecret === 'fb_sec_89283472891238918237') {
+          cleaned.facebookAppSecret = '';
+        }
+        if (
+          !cleaned.facebookRedirectUri ||
+          cleaned.facebookRedirectUri.includes('localhost:5173')
+        ) {
+          cleaned.facebookRedirectUri = `${window.location.origin}/auth/callback/facebook`;
+        }
+        setForm(prev => ({ ...prev, ...cleaned }));
         if (data.themeName && onThemeChange) {
           onThemeChange(data.themeName);
         }
@@ -166,15 +214,19 @@ export default function AdminSettingsView({
   };
 
   const handleSelectDbType = (type) => {
+    let host = 'localhost';
     let port = '5432';
+    let dbName = 'smart_library_db';
     let driver = 'org.postgresql.Driver';
     let url = 'jdbc:postgresql://localhost:5432/smart_library_db';
     let user = 'postgres';
 
     if (type === 'MYSQL') {
+      host = 'mysqldb';
       port = '3306';
+      dbName = 'library_db';
       driver = 'com.mysql.cj.jdbc.Driver';
-      url = 'jdbc:mysql://localhost:3306/smart_library_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC';
+      url = 'jdbc:mysql://mysqldb:3306/library_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC';
       user = 'root';
     } else if (type === 'SQLSERVER') {
       port = '1433';
@@ -196,7 +248,9 @@ export default function AdminSettingsView({
     setForm(prev => ({
       ...prev,
       dbType: type,
+      dbHost: host,
       dbPort: port,
+      dbName,
       dbDriverClassName: driver,
       dbJdbcUrl: url,
       dbUsername: user
@@ -220,8 +274,16 @@ export default function AdminSettingsView({
     setTestingGemini(true);
     setGeminiStatus(null);
     try {
-      const res = await testGeminiApi(form.geminiApiKey, form.geminiModel);
+      const res = await testGeminiApi(form.geminiApiKey, form.geminiModel, geminiTestPrompt);
       setGeminiStatus(res);
+      if (res && res.success && res.model && res.model !== form.geminiModel) {
+        setForm(prev => ({ ...prev, geminiModel: res.model }));
+      }
+      if (res && res.success) {
+        showToast(`Test thành công với model ${res.model} (${res.latencyMs}ms)!`, 'success');
+      } else {
+        showToast(res?.message || 'Test Gemini thất bại', 'error');
+      }
     } catch (err) {
       setGeminiStatus({ success: false, message: 'Lỗi kiểm tra Gemini: ' + err.message });
     } finally {
@@ -229,11 +291,48 @@ export default function AdminSettingsView({
     }
   };
 
+  const handleScanGeminiModels = async () => {
+    if (!form.geminiApiKey || !form.geminiApiKey.trim()) {
+      showToast('Vui lòng nhập Google Gemini API Key trước khi quét danh sách Model!', 'warning');
+      return;
+    }
+    setScanningModels(true);
+    try {
+      const res = await listGeminiModels(form.geminiApiKey);
+      if (res && res.success && Array.isArray(res.models) && res.models.length > 0) {
+        setAvailableGeminiModels(res.models);
+        const currentExists = res.models.some(m => m.id === form.geminiModel);
+        if (!currentExists) {
+          const preferred = res.models.find(m => m.id === 'gemini-flash-lite-latest')?.id || res.models[0].id;
+          setForm(prev => ({ ...prev, geminiModel: preferred }));
+        }
+        showToast(res.message || `Đã tải ${res.models.length} model từ Google AI!`, 'success');
+      } else {
+        showToast(res?.message || 'Không thể lấy danh sách model từ API Key này.', 'error');
+      }
+    } catch (err) {
+      showToast('Lỗi quét danh sách model: ' + err.message, 'error');
+    } finally {
+      setScanningModels(false);
+    }
+  };
+
   const handleTestGoogleOAuth = async () => {
+    const cid = (form.googleClientId || '').trim();
+    const csec = (form.googleClientSecret || '').trim();
+    if (!cid || !csec || cid.includes('smartlibrary') || csec.includes('demo')) {
+      setGoogleOAuthStatus({
+        success: false,
+        message: 'Vui lòng nhập Google Client ID và Client Secret thực tế từ Google Cloud Console trước khi kiểm tra!',
+        latencyMs: 0,
+        endpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+      });
+      return;
+    }
     setTestingGoogleOAuth(true);
     setGoogleOAuthStatus(null);
     try {
-      const res = await testOAuth('google', form.googleClientId, form.googleClientSecret);
+      const res = await testOAuth('google', cid, csec);
       setGoogleOAuthStatus(res);
     } catch (err) {
       setGoogleOAuthStatus({ success: false, message: 'Lỗi kiểm tra Google OAuth: ' + err.message });
@@ -243,15 +342,62 @@ export default function AdminSettingsView({
   };
 
   const handleTestFbOAuth = async () => {
+    const appId = (form.facebookAppId || '').trim();
+    const appSec = (form.facebookAppSecret || '').trim();
+    if (!appId || !appSec || appId === '108927164928374' || appSec.includes('demo')) {
+      setFbOAuthStatus({
+        success: false,
+        message: 'Vui lòng nhập Facebook App ID và App Secret thực tế từ Meta for Developers trước khi kiểm tra!',
+        latencyMs: 0,
+        endpoint: 'https://www.facebook.com/v19.0/dialog/oauth',
+      });
+      return;
+    }
     setTestingFbOAuth(true);
     setFbOAuthStatus(null);
     try {
-      const res = await testOAuth('facebook', form.facebookAppId, form.facebookAppSecret);
+      const res = await testOAuth('facebook', appId, appSec);
       setFbOAuthStatus(res);
     } catch (err) {
       setFbOAuthStatus({ success: false, message: 'Lỗi kiểm tra Facebook Login: ' + err.message });
     } finally {
       setTestingFbOAuth(false);
+    }
+  };
+
+  const handleTestSepayInvoiceWebhook = async () => {
+    setTestingSepayFlow(true);
+    setSepayTestResult(null);
+    try {
+      const start = performance.now();
+      const res = await fetch('/api/sepay/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gateway: form.sepayBankCode || 'MBBank',
+          accountNumber: form.sepayAccountNumber || '0388888888',
+          transferAmount: Number(previewAmount) || 50000,
+          content: previewMemo || 'LIB2026 HD1024',
+          referenceCode: 'FT' + Date.now(),
+        }),
+      });
+      const latency = Math.round(performance.now() - start);
+      setSepayTestResult({
+        success: res.ok,
+        latencyMs: latency,
+        message: res.ok
+          ? `Đã tạo thử hóa đơn QR (${Number(previewAmount || 50000).toLocaleString('vi-VN')} VNĐ • Nội dung: "${previewMemo}") và xác nhận Endpoint Webhook phản hồi 200 OK!`
+          : `Endpoint Webhook trả về mã ${res.status}. Vui lòng kiểm tra cấu hình máy chủ.`,
+      });
+      showToast('Đã kiểm tra tạo hóa đơn VietQR & kết nối Webhook thành công!', 'success');
+    } catch (err) {
+      setSepayTestResult({
+        success: false,
+        latencyMs: 0,
+        message: 'Không thể kết nối tới Webhook: ' + err.message,
+      });
+    } finally {
+      setTestingSepayFlow(false);
     }
   };
 
@@ -378,7 +524,7 @@ export default function AdminSettingsView({
             Các thông tin này sẽ được cập nhật trực tiếp lên thanh Navbar, tiêu đề Website (Title), trang chủ và phần chân trang (Footer).
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div className="admin-grid-2" style={{ marginBottom: '20px' }}>
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                 Tên Thư Viện (Website Title)
@@ -422,7 +568,7 @@ export default function AdminSettingsView({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div className="admin-grid-3" style={{ marginBottom: '20px' }}>
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                 Email Liên hệ / Hỗ trợ
@@ -485,7 +631,7 @@ export default function AdminSettingsView({
               Cấu hình số lượng sách tối đa độc giả được phép mượn cùng lúc và chính sách quá hạn
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="admin-grid-3" style={{ marginBottom: '20px' }}>
               <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
                 <label style={{ fontSize: '0.825rem', color: '#1e40af', display: 'block', marginBottom: '6px', fontWeight: '800' }}>
                   Hạn Mức Sách Mượn Cùng Lúc (Cuốn/Độc Giả)
@@ -687,31 +833,56 @@ export default function AdminSettingsView({
                 </span>
               </div>
 
-              {/* Gemini Model Selector */}
+              {/* Gemini Model Selector + Scan Models Button */}
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#334155', display: 'block', marginBottom: '6px', fontWeight: '800' }}>
-                  Mô Hình AI (AI Model Engine)
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '800' }}>
+                    Mô Hình AI (AI Model Engine)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleScanGeminiModels}
+                    disabled={scanningModels || !form.geminiApiKey}
+                    style={{
+                      background: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      color: '#1d4ed8',
+                      borderRadius: '6px',
+                      padding: '3px 9px',
+                      fontSize: '0.72rem',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <RefreshCw size={12} className={scanningModels ? 'animate-spin' : ''} />
+                    {scanningModels ? 'Đang quét từ Google...' : '🔍 Quét Model Từ Key'}
+                  </button>
+                </div>
                 <select 
                   className="input-field" 
                   name="geminiModel" 
-                  value={form.geminiModel} 
+                  value={form.geminiModel || 'gemini-flash-lite-latest'} 
                   onChange={handleChange}
                   style={{ padding: '10px 12px' }}
                 >
-                  <option value="gemini-1.5-flash">gemini-1.5-flash (Khuyên dùng • Nhanh & Miễn phí)</option>
-                  <option value="gemini-2.0-flash">gemini-2.0-flash (Thế hệ mới • Suy luận cao cấp)</option>
-                  <option value="gemini-1.5-pro">gemini-1.5-pro (Chuyên gia • Phân tích học thuật sâu)</option>
+                  {availableGeminiModels.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.displayName || m.id}
+                    </option>
+                  ))}
                 </select>
                 <span style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                  gemini-1.5-flash có tốc độ phản hồi dưới 1 giây và hạn mức miễn phí cao nhất.
+                  Bấm "Quét Model Từ Key" để lấy danh sách tất cả model khả dụng trên API Key của bạn.
                 </span>
               </div>
 
             </div>
 
             {/* System Prompt Persona */}
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '0.8rem', color: '#334155', display: 'block', marginBottom: '6px', fontWeight: '800' }}>
                 Khẩu Khí & Hướng Dẫn Hệ Thống (System Prompt Persona)
               </label>
@@ -721,17 +892,56 @@ export default function AdminSettingsView({
                 rows="3"
                 value={form.geminiSystemPrompt} 
                 onChange={handleChange}
-                placeholder="Định hình phong cách trả lời cho Trợ lý Thủ thư AI..."
+                placeholder="Định hình phong cách trả lời cho Chuyên viên Tư vấn Sách AI..."
                 style={{ resize: 'vertical', lineHeight: '1.5' }}
               />
               <span style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                Hệ thống sẽ tự động ghép danh sách 100 giáo trình thư viện vào câu nhắc này để Gemini hiểu kho sách.
+                Hệ thống tự động nạp toàn bộ 100+ đầu sách, vị trí kệ và biểu phí thuê (2.000đ/ngày • VietQR TPBank) vào ngữ cảnh tư vấn.
               </span>
             </div>
 
-            {/* Action & Test Connection Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '20px', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* LIVE AI PLAYGROUND: TEST KEY & TEST MODEL */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '18px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '0.88rem', color: '#0f172a' }}>
+                  <Bot size={18} color="#1d4ed8" />
+                  Phòng Thử Nghiệm Trực Tiếp (Test Key &amp; Test Model Tư Vấn Sách)
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {[
+                    'Chào bạn, tư vấn giúp mình sách học lập trình',
+                    'Phí thuê sách 14 ngày bao nhiêu và thanh toán thế nào?',
+                    'Gợi ý sách kinh doanh khởi nghiệp hay nhất'
+                  ].map((sample, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setGeminiTestPrompt(sample)}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '999px',
+                        padding: '3px 10px',
+                        fontSize: '0.72rem',
+                        color: '#334155',
+                        cursor: 'pointer',
+                        fontWeight: '600'
+                      }}
+                    >
+                      {sample}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  value={geminiTestPrompt}
+                  onChange={(e) => setGeminiTestPrompt(e.target.value)}
+                  placeholder="Nhập câu hỏi bất kỳ của khách hàng để kiểm tra độ thông minh của Model..."
+                  style={{ flex: 1, minWidth: '240px', background: '#ffffff' }}
+                />
                 <button 
                   type="button"
                   onClick={handleTestGemini} 
@@ -739,18 +949,27 @@ export default function AdminSettingsView({
                   className="btn btn-outline"
                   style={{ 
                     borderColor: '#1d4ed8', 
-                    color: '#1d4ed8', 
-                    padding: '9px 18px', 
+                    color: '#ffffff', 
+                    padding: '10px 18px', 
                     fontSize: '0.85rem',
-                    background: '#eff6ff'
+                    fontWeight: '800',
+                    background: '#1d4ed8',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
                   {testingGemini ? <RefreshCw className="animate-spin" size={16} /> : <Zap size={16} />}
-                  {testingGemini ? 'Đang gửi test tới Google AI...' : 'Kiểm Tra Kết Nối Gemini API'}
+                  {testingGemini ? 'Đang chạy Model...' : `⚡ Test Key & Model (${form.geminiModel || 'gemini-flash-lite-latest'})`}
                 </button>
+              </div>
+            </div>
 
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  Kiểm tra xem API Key có hợp lệ và hoạt động không
+            {/* Action & Save Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: '600' }}>
+                  Model đang chọn: <strong style={{ color: '#1d4ed8' }}>{form.geminiModel || 'gemini-flash-lite-latest'}</strong>
                 </span>
               </div>
 
@@ -785,10 +1004,24 @@ export default function AdminSettingsView({
                 </div>
 
                 {geminiStatus.success && (
-                  <div style={{ display: 'flex', gap: '20px', fontSize: '0.78rem', color: '#047857', marginTop: '6px' }}>
-                    <div>Mô hình: <strong>{geminiStatus.model}</strong></div>
-                    <div>Độ trễ: <strong>{geminiStatus.latencyMs} ms</strong></div>
-                    <div>Phản hồi mẫu: <em>"{geminiStatus.sampleReply}"</em></div>
+                  <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#047857' }}>
+                    <div style={{ display: 'flex', gap: '20px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                      <div>Mô hình thực thi: <strong>{geminiStatus.model}</strong></div>
+                      <div>Độ trễ phản hồi: <strong>{geminiStatus.latencyMs} ms</strong></div>
+                    </div>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '8px',
+                        background: '#ffffff',
+                        border: '1px solid #a7f3d0',
+                        color: '#064e3b',
+                        whiteSpace: 'pre-wrap',
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {geminiStatus.sampleReply}
+                    </div>
                   </div>
                 )}
               </div>
@@ -848,7 +1081,7 @@ export default function AdminSettingsView({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="admin-grid-2-asym" style={{ marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                   Google Client ID (*.apps.googleusercontent.com)
@@ -999,7 +1232,7 @@ export default function AdminSettingsView({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="admin-grid-2-asym" style={{ marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                   Facebook App ID (ID Ứng dụng Meta)
@@ -1148,7 +1381,7 @@ export default function AdminSettingsView({
               <span className="badge badge-success">SEPAY READY</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                   Số Tài Khoản Ngân Hàng (Account Number)
@@ -1184,7 +1417,7 @@ export default function AdminSettingsView({
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '24px' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                   Tên Chủ Tài Khoản (Account Name)
@@ -1208,7 +1441,347 @@ export default function AdminSettingsView({
                   name="sepayApiKey" 
                   value={form.sepayApiKey} 
                   onChange={handleChange} 
+                  placeholder="Nhập SePay API Token hoặc Webhook Secret thực tế"
                 />
+              </div>
+            </div>
+
+            {/* Live VietQR Preview & Invoice / Webhook Reconciliation Configuration Panel */}
+            <div
+              style={{
+                borderTop: '1px solid var(--border)',
+                paddingTop: '24px',
+                marginTop: '8px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  marginBottom: '16px',
+                }}
+              >
+                <div>
+                  <h3
+                    style={{
+                      fontSize: '1.05rem',
+                      fontWeight: '800',
+                      color: 'var(--text-main)',
+                      margin: '0 0 4px',
+                    }}
+                  >
+                    Xem Trước Mã VietQR Trực Tiếp &amp; Chế Độ Đối Soát Hóa Đơn / Webhook
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Khuyên dùng kết hợp <strong>Tạo Hóa Đơn QR (để sinh mã tham chiếu &amp; hiển thị mã QR có sẵn số tiền)</strong> cùng với <strong>Webhook Tự Động (để gạch nợ tức thì ngay khi tiền vào tài khoản)</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-grid-2-asym" style={{ alignItems: 'start' }}>
+                {/* Left Column: Reconciliation Mode Selector + Webhook URL + Sample Inputs */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label
+                      style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--text-main)',
+                        display: 'block',
+                        marginBottom: '8px',
+                        fontWeight: '800',
+                      }}
+                    >
+                      Phương thức xử lý giao dịch nạp tiền / thanh toán phí:
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        {
+                          id: 'HYBRID',
+                          title: 'Khuyên dùng: Kết hợp Tạo Hóa Đơn + Tự Động Duyệt Webhook',
+                          desc: 'Hệ thống tạo hóa đơn kèm mã tham chiếu duy nhất (VD: LIB2026) nhúng vào mã QR, sau đó SePay gọi Webhook tự động xác nhận hoàn tất trong 3 giây.',
+                          badge: 'TỐI ƯU NHẤT',
+                        },
+                        {
+                          id: 'INVOICE_ONLY',
+                          title: 'Chỉ Tạo Hóa Đơn QR (Đối soát thủ công tại quầy)',
+                          desc: 'Hiển thị mã VietQR theo số tiền hóa đơn để độc giả chuyển khoản; thủ thư kiểm tra sao kê và bấm xác nhận.',
+                        },
+                        {
+                          id: 'WEBHOOK_ONLY',
+                          title: 'Webhook Tự Động (Lắng nghe biến động số dư)',
+                          desc: 'Nhận thông báo giao dịch trực tiếp từ Webhook SePay và khớp theo cú pháp nội dung chuyển khoản.',
+                        },
+                      ].map((mode) => {
+                        const active = sepayReconcileMode === mode.id;
+                        return (
+                          <div
+                            key={mode.id}
+                            onClick={() => setSepayReconcileMode(mode.id)}
+                            style={{
+                              padding: '12px 14px',
+                              borderRadius: '12px',
+                              border: active ? '2px solid #0891b2' : '1px solid var(--border)',
+                              background: active ? 'rgba(8, 145, 178, 0.08)' : 'var(--bg-elevated)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                marginBottom: '4px',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: '0.84rem',
+                                  fontWeight: '800',
+                                  color: active ? '#0891b2' : 'var(--text-main)',
+                                }}
+                              >
+                                {active ? '● ' : '○ '}
+                                {mode.title}
+                              </span>
+                              {mode.badge && (
+                                <span
+                                  style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: '800',
+                                    padding: '2px 7px',
+                                    borderRadius: '999px',
+                                    background: '#0891b2',
+                                    color: '#ffffff',
+                                  }}
+                                >
+                                  {mode.badge}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                              {mode.desc}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Sample Amount & Memo for Live QR Preview */}
+                  <div className="admin-grid-2">
+                    <div>
+                      <label
+                        style={{
+                          fontSize: '0.78rem',
+                          color: 'var(--text-muted)',
+                          display: 'block',
+                          marginBottom: '6px',
+                          fontWeight: '700',
+                        }}
+                      >
+                        Số tiền xem trước (VNĐ)
+                      </label>
+                      <input
+                        type="number"
+                        className="input-field"
+                        value={previewAmount}
+                        onChange={(e) => setPreviewAmount(e.target.value)}
+                        min="1000"
+                        step="5000"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          fontSize: '0.78rem',
+                          color: 'var(--text-muted)',
+                          display: 'block',
+                          marginBottom: '6px',
+                          fontWeight: '700',
+                        }}
+                      >
+                        Mã hóa đơn / Nội dung CK mẫu
+                      </label>
+                      <input
+                        type="text"
+                        className="input-field"
+                        value={previewMemo}
+                        onChange={(e) => setPreviewMemo(e.target.value)}
+                        placeholder="LIB2026 HD1024"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Webhook Callback URL & Test Button */}
+                  <div
+                    style={{
+                      padding: '14px 16px',
+                      borderRadius: '12px',
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <label
+                      style={{
+                        fontSize: '0.78rem',
+                        fontWeight: '800',
+                        color: 'var(--text-main)',
+                        display: 'block',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      Địa chỉ Webhook Callback URL (Cấu hình trên trang quản trị SePay):
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                      <input
+                        type="text"
+                        readOnly
+                        className="input-field"
+                        value={`${window.location.origin}/api/sepay/webhook`}
+                        style={{ flex: 1, minWidth: '220px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/api/sepay/webhook`);
+                          showToast('Đã sao chép URL Webhook SePay vào bộ nhớ tạm!', 'success');
+                        }}
+                        className="btn btn-outline"
+                        style={{ padding: '8px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                      >
+                        <Copy size={14} /> Sao chép URL Webhook
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTestSepayInvoiceWebhook}
+                      disabled={testingSepayFlow}
+                      className="btn btn-primary"
+                      style={{ width: '100%', padding: '10px 16px', fontSize: '0.84rem' }}
+                    >
+                      {testingSepayFlow ? (
+                        <RefreshCw className="animate-spin" size={16} />
+                      ) : (
+                        <Zap size={16} />
+                      )}
+                      {testingSepayFlow
+                        ? 'Đang tạo hóa đơn mẫu & kiểm tra Webhook...'
+                        : 'Tạo Thử Hóa Đơn & Kiểm Tra Webhook'}
+                    </button>
+
+                    {sepayTestResult && (
+                      <div
+                        style={{
+                          marginTop: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          background: sepayTestResult.success
+                            ? 'rgba(16, 185, 129, 0.1)'
+                            : 'rgba(239, 68, 68, 0.1)',
+                          border: `1px solid ${
+                            sepayTestResult.success ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'
+                          }`,
+                          color: sepayTestResult.success ? '#047857' : '#b91c1c',
+                          fontSize: '0.78rem',
+                          fontWeight: '700',
+                        }}
+                      >
+                        {sepayTestResult.message}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Live VietQR Card Preview */}
+                <div
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    textAlign: 'center',
+                    boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08)',
+                    color: '#0f172a',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: '800',
+                      color: '#0891b2',
+                      letterSpacing: '0.04em',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    BẢN XEM TRƯỚC MÃ VIETQR ĐỘNG
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '900', marginBottom: '12px' }}>
+                    {form.sepayBankCode || 'MBBank'} • {form.sepayAccountNumber || '0388888888'}
+                  </div>
+
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: '1px dashed #cbd5e1',
+                      display: 'inline-block',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <img
+                      src={`https://qr.sepay.vn/img?acc=${encodeURIComponent(
+                        form.sepayAccountNumber || '0388888888'
+                      )}&bank=${encodeURIComponent(
+                        form.sepayBankCode || 'MBBank'
+                      )}&amount=${encodeURIComponent(
+                        previewAmount || 50000
+                      )}&des=${encodeURIComponent(previewMemo || 'LIB2026')}`}
+                      alt="VietQR Live Preview"
+                      style={{
+                        width: '210px',
+                        height: '210px',
+                        objectFit: 'contain',
+                        display: 'block',
+                        margin: '0 auto',
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      textAlign: 'left',
+                      background: '#f1f5f9',
+                      borderRadius: '10px',
+                      padding: '10px 12px',
+                      fontSize: '0.78rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#64748b' }}>Chủ TK:</span>
+                      <strong>{form.sepayAccountName || 'TRUNG TAM THU VIEN'}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#64748b' }}>Số tiền:</span>
+                      <strong style={{ color: '#0891b2' }}>
+                        {Number(previewAmount || 0).toLocaleString('vi-VN')} VNĐ
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#64748b' }}>Nội dung CK:</span>
+                      <strong style={{ color: '#be123c' }}>{previewMemo || 'LIB2026'}</strong>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1232,7 +1805,7 @@ export default function AdminSettingsView({
               <span className="badge badge-info">VNPAY 2.1</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                   VNPay TMN Code (Terminal ID)
@@ -1357,7 +1930,7 @@ export default function AdminSettingsView({
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div className="admin-grid-2" style={{ marginBottom: '20px' }}>
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                 Cloudflare API Token / Global Key
@@ -1437,18 +2010,6 @@ export default function AdminSettingsView({
                   </p>
                 </div>
               </div>
-
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <a 
-                  href="http://localhost:8080/h2-console" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="btn btn-outline"
-                  style={{ fontSize: '0.75rem', padding: '7px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <ExternalLink size={14} /> Mở H2 Web Console
-                </a>
-              </div>
             </div>
 
             {/* SELECTION GRID: CÁC LOẠI CƠ SỞ DỮ LIỆU */}
@@ -1457,13 +2018,13 @@ export default function AdminSettingsView({
                 Chọn Hệ Quản Trị Cơ Sở Dữ Liệu (Nhấn để tự động nạp Driver &amp; Cổng mặc định):
               </label>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+              <div className="admin-grid-5">
                 {[
-                  { id: 'POSTGRESQL', name: 'PostgreSQL', desc: 'Khuyên Dùng • Chuẩn Enterprise', port: '5432', color: '#336791' },
-                  { id: 'MYSQL', name: 'MySQL / MariaDB', desc: 'Phổ Biến • Đồ Án J2EE', port: '3306', color: '#00758f' },
+                  { id: 'POSTGRESQL', name: 'PostgreSQL', desc: 'Khuyên Dùng • Chuẩn Đại Học', port: '5432', color: '#336791' },
+                  { id: 'MYSQL', name: 'MySQL / MariaDB', desc: 'Phổ Biến • Thư Viện Số', port: '3306', color: '#00758f' },
                   { id: 'SQLSERVER', name: 'MS SQL Server', desc: 'Hệ Thống Đào Tạo ĐH', port: '1433', color: '#cc292b' },
                   { id: 'ORACLE', name: 'Oracle Database', desc: 'Hàn Lâm & Quốc Gia', port: '1521', color: '#f80000' },
-                  { id: 'H2', name: 'H2 In-Memory', desc: 'Khởi Động Nhanh • Demo', port: '8080', color: '#059669' }
+                  { id: 'H2', name: 'Embedded DB', desc: 'Khởi Động Nhanh • Nội Bộ', port: '8080', color: '#059669' }
                 ].map((db) => {
                   const isSelected = form.dbType === db.id;
                   return (
@@ -1506,7 +2067,7 @@ export default function AdminSettingsView({
                 <Server size={16} color="var(--primary)" /> Thông Số Kết Nối ({form.dbType}):
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.2fr', gap: '16px', marginBottom: '16px' }}>
+              <div className="admin-grid-3" style={{ marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                     Host / Server IP
@@ -1550,7 +2111,7 @@ export default function AdminSettingsView({
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div className="admin-grid-2" style={{ marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                     Tài Khoản Đăng Nhập (Username)
@@ -1605,7 +2166,7 @@ export default function AdminSettingsView({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px' }}>
+              <div className="admin-grid-3">
                 <div>
                   <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                     Driver Class Name
@@ -1727,7 +2288,7 @@ export default function AdminSettingsView({
             Lựa chọn phong cách thiết kế phù hợp với trường đại học, viện nghiên cứu hoặc thư viện công cộng. Nhấn chọn để áp dụng tức thì!
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div className="admin-grid-2">
             {themes.map(t => {
               const isSelected = form.themeName === t.id;
               return (

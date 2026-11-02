@@ -40,26 +40,26 @@ public class SystemSetting {
 
     // VNPay Config
     @Builder.Default
-    private String vnpTmnCode = "2QXUI4B4";
+    private String vnpTmnCode = "";
 
     @Builder.Default
-    private String vnpHashSecret = "AXYZBOPQRETUVWXKLMN1234567890ABC";
+    private String vnpHashSecret = "";
 
     @Builder.Default
     private String vnpPayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
 
     // SePay Config
     @Builder.Default
-    private String sepayAccountNumber = "0388888888";
+    private String sepayAccountNumber = "49431072004";
 
     @Builder.Default
-    private String sepayBankCode = "MBBank";
+    private String sepayBankCode = "TPBank";
 
     @Builder.Default
-    private String sepayAccountName = "SMART LIBRARY HUFLIT";
+    private String sepayAccountName = "LE HOAI LOC";
 
     @Builder.Default
-    private String sepayApiKey = "SEPAY_DEMO_SECRET_API_KEY";
+    private String sepayApiKey = "";
 
     // Cloudflare & Cloud CDN Config
     @Builder.Default
@@ -76,31 +76,31 @@ public class SystemSetting {
 
     // Database & System rules
     @Builder.Default
-    private String databaseEngine = "H2 / MySQL Dual Engine";
+    private String databaseEngine = "MySQL 8.0 Enterprise Engine";
 
     @Builder.Default
-    private String dbType = "POSTGRESQL"; // POSTGRESQL, MYSQL, SQLSERVER, ORACLE, H2
+    private String dbType = "MYSQL"; // POSTGRESQL, MYSQL, SQLSERVER, ORACLE, H2
 
     @Builder.Default
-    private String dbHost = "localhost";
+    private String dbHost = "mysqldb";
 
     @Builder.Default
-    private String dbPort = "5432";
+    private String dbPort = "3306";
 
     @Builder.Default
-    private String dbName = "smart_library_db";
+    private String dbName = "library_db";
 
     @Builder.Default
-    private String dbUsername = "postgres";
+    private String dbUsername = "root";
 
     @Builder.Default
-    private String dbPassword = "root_password_123";
+    private String dbPassword = "root";
 
     @Builder.Default
-    private String dbJdbcUrl = "jdbc:postgresql://localhost:5432/smart_library_db";
+    private String dbJdbcUrl = "jdbc:mysql://mysqldb:3306/library_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true";
 
     @Builder.Default
-    private String dbDriverClassName = "org.postgresql.Driver";
+    private String dbDriverClassName = "com.mysql.cj.jdbc.Driver";
 
     @Builder.Default
     private Integer dbMaxPoolSize = 10;
@@ -124,13 +124,13 @@ public class SystemSetting {
 
     // Số liệu vận hành & thống kê tra cứu thực tế
     @Builder.Default
-    private Long totalSearchHits = 158958434L;
+    private Long totalSearchHits = 12480L;
 
     @Builder.Default
-    private Long todaySearchHits = 345693L;
+    private Long todaySearchHits = 142L;
 
     @Builder.Default
-    private Integer activeReadersCount = 28;
+    private Integer activeReadersCount = 18;
 
     @Builder.Default
     private String themeName = "emerald-scholar"; // orange-white, modern-dark, oxford-navy, emerald-scholar
@@ -140,36 +140,36 @@ public class SystemSetting {
     private String geminiApiKey = "";
 
     @Builder.Default
-    private String geminiModel = "gemini-1.5-flash"; // gemini-1.5-flash, gemini-2.0-flash, gemini-1.5-pro
+    private String geminiModel = "gemini-flash-lite-latest";
 
     @Builder.Default
     private boolean geminiEnabled = true;
 
     @Builder.Default
-    private String geminiSystemPrompt = "Bạn là Trợ lý Thủ thư AI thông minh của Thư viện Số SmartLibrary. Hãy tư vấn giáo trình, phương pháp học tập và gợi ý chính xác sách trong thư viện bằng tiếng Việt chuẩn mực, thân thiện.";
+    private String geminiSystemPrompt = "Bạn là Cán bộ Tư vấn Học liệu của Trung tâm Thông tin – Thư viện Đại học. Hãy tư vấn giáo trình, phương pháp nghiên cứu và gợi ý chính xác sách trong thư viện bằng tiếng Việt chuẩn mực, thân thiện.";
 
     // Google OAuth 2.0 Config
     @Builder.Default
-    private String googleClientId = "109827364521-smartlibrary.apps.googleusercontent.com";
+    private String googleClientId = "426128153010-m9mm9jui1d2hcq9a8ktjhj8eel1bfo0e.apps.googleusercontent.com";
 
     @Builder.Default
-    private String googleClientSecret = "GOCSPX-demo_google_client_secret_xyz123";
+    private String googleClientSecret = "";
 
     @Builder.Default
-    private String googleRedirectUri = "http://localhost:5173/auth/callback/google";
+    private String googleRedirectUri = "http://160.191.244.153.nip.io:8088/auth/callback/google";
 
     @Builder.Default
     private boolean googleOAuthEnabled = true;
 
     // Facebook Login Config
     @Builder.Default
-    private String facebookAppId = "108927164928374";
+    private String facebookAppId = "";
 
     @Builder.Default
-    private String facebookAppSecret = "fb_sec_89283472891238918237";
+    private String facebookAppSecret = "";
 
     @Builder.Default
-    private String facebookRedirectUri = "http://localhost:5173/auth/callback/facebook";
+    private String facebookRedirectUri = "http://160.191.244.153:8088/auth/callback/facebook";
 
     @Builder.Default
     private boolean facebookOAuthEnabled = true;
@@ -182,18 +182,18 @@ public class SystemSetting {
     private boolean popupNavButtonEnabled = true;
 
     @Builder.Default
-    private String popupTitle = "Thông Báo: Khai Trương Kho Sách Số & Tuần Lễ Văn Hóa Đọc 2026";
+    private String popupTitle = "Thông Báo: Lịch Phục Vụ Phòng Đọc & Mượn Giáo Trình Học Kỳ Mới";
 
     @Builder.Default
-    private String popupBadgeText = "HOT • BẢN TIN SỐ #1792776375";
+    private String popupBadgeText = "BẢN TIN THƯ VIỆN • HỌC KỲ 2026";
 
     @Builder.Default
     private String popupBannerUrl = "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1000";
 
     @Builder.Default
     @Column(length = 2000)
-    private String popupContent = "Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary! Nhằm phục vụ đợt thi học kỳ và nhu cầu nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn/độc giả, miễn phí đọc 100 tài liệu số chuyên ngành. Trợ lý AI Gemini đã sẵn sàng hỗ trợ tra cứu 24/7.";
+    private String popupContent = "Chào mừng quý giảng viên, học viên và sinh viên đến với Trung tâm Thông tin – Thư viện Đại học! Nhằm phục vụ đợt học tập và làm khóa luận tốt nghiệp, Thư viện hỗ trợ đặt mượn giáo trình trực tuyến, gia hạn phiếu mượn tự động và tra cứu danh mục tài liệu tham khảo theo từng chuyên ngành đào tạo.";
 
     @Builder.Default
-    private String popupLinkText = "Xem Kho Sách & Tra Cứu";
+    private String popupLinkText = "Tra Cứu Giáo Trình Ngay";
 }

@@ -28,6 +28,16 @@ public class BorrowService {
 
     private static final double DAILY_FINE_RATE = 5000.0; // 5,000 VNĐ / day late
 
+    private double getDailyFineRate() {
+        if (systemSettingService != null) {
+            Double rate = systemSettingService.getSettings().getLateFinePerDay();
+            if (rate != null && rate > 0) {
+                return rate;
+            }
+        }
+        return DAILY_FINE_RATE;
+    }
+
     @Transactional
     public BorrowRecord requestBorrow(User user, Long bookId, int days, String note) {
         Book book = bookRepository.findById(bookId)
@@ -37,11 +47,11 @@ public class BorrowService {
             throw new RuntimeException("Rất tiếc, cuốn sách này hiện đã được mượn hết trong kho!");
         }
 
+        List<BorrowStatus> activeStatuses = List.of(BorrowStatus.BORROWED, BorrowStatus.PENDING);
+
         // 1. Kiểm tra độc giả có đang mượn chính cuốn sách này chưa trả
-        List<BorrowRecord> userBorrows = borrowRecordRepository.findByUserIdOrderByBorrowDateDesc(user.getId());
-        boolean isAlreadyBorrowingThisBook = userBorrows.stream()
-                .anyMatch(r -> r.getBook().getId().equals(bookId) && 
-                        (r.getStatus() == BorrowStatus.BORROWED || r.getStatus() == BorrowStatus.PENDING));
+        boolean isAlreadyBorrowingThisBook = borrowRecordRepository
+                .existsByUserIdAndBookIdAndStatusIn(user.getId(), bookId, activeStatuses);
         if (isAlreadyBorrowingThisBook) {
             throw new RuntimeException("Bạn đang mượn cuốn sách này rồi (chưa hoàn tất trả sách). Quy chế thư viện: Mỗi độc giả chỉ được mượn 1 bản của cùng một đầu sách!");
         }
@@ -55,18 +65,14 @@ public class BorrowService {
             }
         }
 
-        long activeCount = userBorrows.stream()
-                .filter(r -> r.getStatus() == BorrowStatus.BORROWED || r.getStatus() == BorrowStatus.PENDING)
-                .count();
+        long activeCount = borrowRecordRepository.countByUserIdAndStatusIn(user.getId(), activeStatuses);
         if (activeCount >= maxBorrowLimit) {
             throw new RuntimeException("Bạn đã đạt giới hạn tối đa mượn " + maxBorrowLimit + " cuốn sách cùng lúc theo Quy chế Thư viện. Vui lòng trả bớt sách đang mượn trước khi đăng ký mượn thêm sách mới!");
         }
 
         // 3. Kiểm tra sách quá hạn hoặc tiền phạt chưa thanh toán
         LocalDate today = LocalDate.now();
-        boolean hasOverdue = userBorrows.stream()
-                .anyMatch(r -> (r.getStatus() == BorrowStatus.BORROWED && r.getDueDate() != null && r.getDueDate().isBefore(today)) ||
-                               (r.getFineAmount() != null && r.getFineAmount() > 0 && r.getStatus() != BorrowStatus.RETURNED));
+        boolean hasOverdue = borrowRecordRepository.existsOverdueOrUnpaidFineByUserId(user.getId(), today);
         if (hasOverdue) {
             throw new RuntimeException("Tài khoản của bạn đang có sách quá hạn hoặc tiền phạt trễ hạn chưa thanh toán. Vui lòng thanh toán phí phạt tại mục 'Sách của tôi' trước khi tiếp tục mượn sách mới!");
         }
@@ -121,7 +127,7 @@ public class BorrowService {
         double fine = 0.0;
         if (returnDate.isAfter(record.getDueDate())) {
             long overdueDays = ChronoUnit.DAYS.between(record.getDueDate(), returnDate);
-            fine += overdueDays * DAILY_FINE_RATE;
+            fine += overdueDays * getDailyFineRate();
         }
 
         if (lost) {
@@ -197,11 +203,17 @@ public class BorrowService {
         List<BorrowRecord> overdueList = borrowRecordRepository.findOverdueRecords(today);
 
         log.info("Checking overdue records: found {} overdue records", overdueList.size());
+        if (overdueList.isEmpty()) {
+            return;
+        }
+        double dailyFineRate = getDailyFineRate();
         for (BorrowRecord r : overdueList) {
             r.setStatus(BorrowStatus.OVERDUE);
             long days = ChronoUnit.DAYS.between(r.getDueDate(), today);
-            r.setFineAmount(days * DAILY_FINE_RATE);
-            borrowRecordRepository.save(r);
+            r.setFineAmount(days * dailyFineRate);
+        }
+        borrowRecordRepository.saveAll(overdueList);
+        for (BorrowRecord r : overdueList) {
             emailService.sendOverdueAlert(r);
         }
     }

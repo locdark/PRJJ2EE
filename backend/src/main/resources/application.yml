@@ -65,12 +65,12 @@ app:
     return-url: http://localhost:5173/payment-return
     api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
   sepay:
-    account-number: "0388888888"
-    bank-code: "MBBank"
-    account-name: "SMART LIBRARY HUFLIT"
-    api-key: "SEPAY_DEMO_SECRET_API_KEY"
+    account-number: ${SEPAY_ACCOUNT_NUMBER:49431072004}
+    bank-code: ${SEPAY_BANK_CODE:TPBank}
+    account-name: ${SEPAY_ACCOUNT_NAME:LE HOAI LOC}
+    api-key: ${SEPAY_API_KEY:}
     qr-url: "https://qr.sepay.vn/img"
   mail:
     enabled: false # Set true when real SMTP credentials are provided, otherwise logs formatted email to console
   ai:
-    gemini-api-key: "" # Optional external key, default uses intelligent built-in semantic & recommendation engine
+    gemini-api-key: ${GEMINI_API_KEY:}

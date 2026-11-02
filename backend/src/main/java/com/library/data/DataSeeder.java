@@ -282,7 +282,7 @@ public class DataSeeder implements CommandLineRunner {
             String desc = (String) row[11];
 
             // Kiểm tra trùng ISBN
-            if (bookRepository.findAll().stream().anyMatch(b -> b.getIsbn().equals(isbn))) {
+            if (bookRepository.existsByIsbn(isbn)) {
                 continue;
             }
 

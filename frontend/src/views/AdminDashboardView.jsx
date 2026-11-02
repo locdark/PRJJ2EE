@@ -6,10 +6,11 @@ import {
   Activity, Compass, Search, Download, Mail, MessageSquare, ChevronRight,
   FileText, Check, Phone, Layers, Calendar, Filter, Database, Globe,
   Radio, Send, Bell, Home, LogOut, Sun, Moon, Cpu, Wifi, HardDrive, Zap,
-  Sliders, Eye, Image as ImageIcon
+  Sliders, Eye, Image as ImageIcon, Menu, X
 } from 'lucide-react';
 import { graphqlQuery, getSystemSettings, updateSystemSettings } from '../services/api';
-import { GET_DASHBOARD_STATS } from '../services/graphqlQueries';
+import { GET_DASHBOARD_STATS, GET_CATEGORIES, GET_BOOKS } from '../services/graphqlQueries';
+import { showToast } from '../components/Toast';
 
 // Sub-views integrated directly into the unified dashboard
 import BookManagementView from './BookManagementView';
@@ -30,9 +31,15 @@ export default function AdminDashboardView({
   // Dashboard Metrics & Charts
   const [stats, setStats] = useState(null);
   const [payments, setPayments] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [books, setBooks] = useState([]);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeFilter, setTimeFilter] = useState('7d');
+  const [paymentSearch, setPaymentSearch] = useState('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
 
   // Broadcast Notification State (matching Image 2)
   const [lastBroadcastTime, setLastBroadcastTime] = useState('00:26:15 28/10/2026');
@@ -94,9 +101,10 @@ export default function AdminDashboardView({
       const payload = overrideSettings || popupSettings;
       await updateSystemSettings(payload);
       setPopupSaveSuccess(true);
+      showToast('Đã lưu và phát sóng cấu hình bản tin thành công!', 'success');
       setTimeout(() => setPopupSaveSuccess(false), 3500);
     } catch (e) {
-      alert('Lỗi lưu cấu hình: ' + e.message);
+      showToast('Lỗi lưu cấu hình: ' + e.message, 'error');
     } finally {
       setPopupSaving(false);
     }
@@ -123,9 +131,15 @@ export default function AdminDashboardView({
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const data = await graphqlQuery(GET_DASHBOARD_STATS);
+      const [data, catData, bookData] = await Promise.all([
+        graphqlQuery(GET_DASHBOARD_STATS),
+        graphqlQuery(GET_CATEGORIES),
+        graphqlQuery(GET_BOOKS, { page: 0, size: 120 }),
+      ]);
       setStats(data?.dashboardStats || null);
       setPayments(data?.payments || []);
+      setCategories(catData?.categories || []);
+      setBooks(bookData?.books?.content || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -175,6 +189,7 @@ export default function AdminDashboardView({
       items: [
         { id: 'books', label: 'Quản Lý Toàn Bộ Sách', icon: BookOpen, tag: 'ALL', tagBg: '#581c87', tagColor: '#d8b4fe' },
         { id: 'borrows', label: 'Quản Lý Mượn Trả', icon: Clock, tag: 'RENT', tagBg: '#713f12', tagColor: '#facc15' },
+        { id: 'payments', label: 'Lịch Sử Thanh Toán', icon: CreditCard, tag: 'BILL', tagBg: '#064e3b', tagColor: '#34d399' },
         { id: 'users', label: 'Quản Lý Độc Giả', icon: Users, tag: 'ACCOUNT', tagBg: '#164e63', tagColor: '#38bdf8' }
       ]
     },
@@ -236,7 +251,9 @@ export default function AdminDashboardView({
     >
       
       {/* ================= 1. LEFT SIDEBAR (EXACT MATCH TO IMAGE 2) ================= */}
-      <aside style={{ 
+      <aside
+        className={`admin-sidebar-panel ${!mobileSidebarOpen ? 'mobile-closed' : ''}`}
+        style={{ 
         width: '260px', 
         minWidth: '260px', 
         backgroundColor: themeColors.bgSidebar, 
@@ -339,7 +356,10 @@ export default function AdminDashboardView({
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setActiveMenu(item.id)}
+                      onClick={() => {
+                        setActiveMenu(item.id);
+                        setMobileSidebarOpen(false);
+                      }}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -472,8 +492,25 @@ export default function AdminDashboardView({
           top: 0,
           zIndex: 40
         }}>
-          {/* Breadcrumb Left */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: themeColors.textMuted }}>
+          {/* Breadcrumb Left + Mobile Sidebar Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: themeColors.textMuted }}>
+            <button
+              onClick={() => setMobileSidebarOpen((prev) => !prev)}
+              className="admin-mobile-toggle"
+              style={{
+                background: isDark ? '#1e293b' : '#f1f5f9',
+                border: `1px solid ${themeColors.border}`,
+                color: themeColors.textMain,
+                padding: '5px 8px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Đóng/Mở Menu Quản Trị"
+            >
+              {mobileSidebarOpen ? <X size={16} /> : <Menu size={16} />}
+            </button>
             <span>Hệ Thống</span>
             <span>/</span>
             <span style={{ color: themeColors.textMain, fontWeight: '700' }}>
@@ -498,7 +535,7 @@ export default function AdminDashboardView({
               fontWeight: '700' 
             }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-              Port 8080 Online
+              Hệ Thống Hoạt Động
             </div>
 
             {/* Sáng / Tối Switch */}
@@ -1065,7 +1102,7 @@ export default function AdminDashboardView({
                   </div>
                 </div>
 
-                {/* Category Breakdown */}
+                {/* Category Breakdown (Real Data Computed from Categories / Books) */}
                 <div style={{
                   backgroundColor: themeColors.bgCard,
                   border: `1px solid ${themeColors.border}`,
@@ -1073,30 +1110,116 @@ export default function AdminDashboardView({
                   padding: '24px'
                 }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: '800', color: themeColors.textMain, margin: '0 0 16px 0' }}>
-                    Phân Bổ Đầu Sách Theo 7 Chuyên Đề Tiêu Chuẩn
+                    Phân Bổ Đầu Sách Theo Chuyên Đề Học Thuật Thực Tế
                   </h3>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {[
-                      { name: 'Công nghệ & Lập trình J2EE', count: 32, pct: 32, color: '#1d4ed8' },
-                      { name: 'Kinh Tế, Quản Trị & Tài Chính', count: 24, pct: 24, color: '#3b82f6' },
-                      { name: 'Y Dược, Điều Dưỡng & Sức Khỏe', count: 18, pct: 18, color: '#10b981' },
-                      { name: 'Ngoại Ngữ & Luyện Thi IELTS', count: 14, pct: 14, color: '#8b5cf6' },
-                      { name: 'Khác (Lịch sử, Pháp luật, STEAM)', count: 12, pct: 12, color: '#64748b' }
-                    ].map((cat, i) => (
-                      <div key={i}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '4px' }}>
-                          <span style={{ color: themeColors.textMain, fontWeight: '600' }}>{cat.name}</span>
-                          <span style={{ color: themeColors.textMuted, fontWeight: '700' }}>{cat.count} sách ({cat.pct}%)</span>
+                    {(() => {
+                      const palette = ['#1d4ed8', '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899'];
+                      const totalBookCount = books.length || stats?.totalBooks || 100;
+                      const computedCats = categories.length > 0
+                        ? categories.map((cat, idx) => {
+                            const countFromBooks = books.filter(b => String(b.category?.id) === String(cat.id)).length;
+                            const count = countFromBooks || cat.bookCount || 0;
+                            const pct = Math.min(100, Math.round((count / Math.max(1, totalBookCount)) * 100));
+                            return {
+                              name: cat.name,
+                              count,
+                              pct,
+                              color: palette[idx % palette.length]
+                            };
+                          })
+                        : [
+                            { name: 'Công nghệ & Lập trình J2EE', count: 20, pct: 20, color: '#1d4ed8' },
+                            { name: 'Trí Tuệ Nhân Tạo & Khoa Học Dữ Liệu', count: 15, pct: 15, color: '#3b82f6' },
+                            { name: 'Kinh Tế, Quản Trị & Tài Chính', count: 14, pct: 14, color: '#10b981' },
+                            { name: 'Kỹ Năng Mềm & Lãnh Đạo', count: 14, pct: 14, color: '#8b5cf6' },
+                            { name: 'Khoa Học Tự Nhiên & Kỹ Thuật', count: 14, pct: 14, color: '#f59e0b' }
+                          ];
+                      return computedCats.map((cat, i) => (
+                        <div key={i}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '4px' }}>
+                            <span style={{ color: themeColors.textMain, fontWeight: '600' }}>{cat.name}</span>
+                            <span style={{ color: themeColors.textMuted, fontWeight: '700' }}>{cat.count} sách ({cat.pct}%)</span>
+                          </div>
+                          <div style={{ width: '100%', height: '6px', background: isDark ? '#1e293b' : '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${cat.pct}%`, height: '100%', background: cat.color, borderRadius: '3px', transition: 'width 0.4s ease' }} />
+                          </div>
                         </div>
-                        <div style={{ width: '100%', height: '6px', background: isDark ? '#1e293b' : '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ width: `${cat.pct}%`, height: '100%', background: cat.color, borderRadius: '3px' }} />
-                        </div>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 </div>
 
+              </div>
+
+              {/* Real Recent Payments & Transactions Table */}
+              <div style={{
+                marginTop: '20px',
+                backgroundColor: themeColors.bgCard,
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: '12px',
+                padding: '20px 24px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: '800', color: themeColors.textMain, margin: '0 0 2px 0' }}>
+                      💳 Lịch Sử Giao Dịch Thanh Toán Gần Đây (VNPay &amp; SePay VietQR)
+                    </h3>
+                    <p style={{ fontSize: '0.725rem', color: themeColors.textMuted, margin: 0 }}>
+                      Dữ liệu đối soát thời gian thực từ cổng thanh toán trực tuyến ({payments.length} giao dịch)
+                    </p>
+                  </div>
+                  <span className="badge badge-success">ĐỐI SOÁT TỰ ĐỘNG</span>
+                </div>
+
+                {payments.length === 0 ? (
+                  <div style={{ fontSize: '0.825rem', color: themeColors.textMuted, padding: '16px 0' }}>
+                    Chưa có giao dịch phát sinh mới.
+                  </div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="enterprise-table">
+                      <thead>
+                        <tr>
+                          <th>Mã Giao Dịch</th>
+                          <th>Độc Giả</th>
+                          <th>Nội Dung</th>
+                          <th>Phương Thức</th>
+                          <th>Số Tiền</th>
+                          <th>Thời Gian</th>
+                          <th>Trạng Thái</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.slice(0, 6).map((pm) => (
+                          <tr key={pm.id}>
+                            <td style={{ fontFamily: 'var(--font-mono)', fontWeight: '700', color: '#1d4ed8', fontSize: '0.78rem' }}>
+                              {pm.transactionId || `TXN-${pm.id}`}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: '700', color: themeColors.textMain }}>{pm.user?.fullName || 'Độc giả'}</div>
+                              <div style={{ fontSize: '0.7rem', color: themeColors.textMuted }}>{pm.user?.email}</div>
+                            </td>
+                            <td style={{ fontSize: '0.8rem', color: themeColors.textMain }}>{pm.orderInfo || 'Thanh toán phí thư viện'}</td>
+                            <td>
+                              <span className="badge badge-info">{pm.paymentMethod || 'SEPAY_VIETQR'}</span>
+                            </td>
+                            <td style={{ fontWeight: '800', color: '#10b981' }}>
+                              {(pm.amount || 0).toLocaleString('vi-VN')} đ
+                            </td>
+                            <td style={{ fontSize: '0.75rem', color: themeColors.textMuted }}>{pm.paymentDate || 'Hôm nay'}</td>
+                            <td>
+                              <span className={`badge ${pm.status === 'SUCCESS' ? 'badge-success' : 'badge-warning'}`}>
+                                {pm.status || 'SUCCESS'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1146,10 +1269,303 @@ export default function AdminDashboardView({
             </div>
           )}
 
-          {/* SECTION: DATA MANAGEMENT (BOOKS, BORROWS, USERS) */}
+          {/* SECTION: DATA MANAGEMENT (BOOKS, BORROWS, PAYMENTS, USERS) */}
           {activeMenu === 'books' && <BookManagementView />}
           {activeMenu === 'borrows' && <BorrowManagementView />}
           {activeMenu === 'users' && <UserManagementView />}
+
+          {activeMenu === 'payments' && (() => {
+            const normalizedSearch = paymentSearch.trim().toLowerCase();
+            const filteredPayments = (payments || []).filter((p) => {
+              const matchStatus = paymentStatusFilter === 'ALL' || p.status === paymentStatusFilter;
+              const matchMethod =
+                paymentMethodFilter === 'ALL' ||
+                (paymentMethodFilter === 'SEPAY' && (p.paymentMethod || '').toUpperCase().includes('SEPAY')) ||
+                (paymentMethodFilter === 'VNPAY' && (p.paymentMethod || '').toUpperCase().includes('VNPAY')) ||
+                (paymentMethodFilter === 'CASH' && (p.paymentMethod || '').toUpperCase().includes('CASH'));
+              const matchKeyword =
+                !normalizedSearch ||
+                (p.transactionId || '').toLowerCase().includes(normalizedSearch) ||
+                (p.orderInfo || '').toLowerCase().includes(normalizedSearch) ||
+                (p.user?.fullName || '').toLowerCase().includes(normalizedSearch) ||
+                (p.user?.email || '').toLowerCase().includes(normalizedSearch) ||
+                (p.borrowRecord?.borrowCode || '').toLowerCase().includes(normalizedSearch) ||
+                (p.borrowRecord?.book?.title || '').toLowerCase().includes(normalizedSearch);
+              return matchStatus && matchMethod && matchKeyword;
+            });
+
+            const totalSuccessAmount = (payments || [])
+              .filter((p) => p.status === 'SUCCESS')
+              .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            const successCount = (payments || []).filter((p) => p.status === 'SUCCESS').length;
+            const pendingCount = (payments || []).filter((p) => p.status === 'PENDING').length;
+            const sepayCount = (payments || []).filter((p) =>
+              (p.paymentMethod || '').toUpperCase().includes('SEPAY')
+            ).length;
+
+            const handleExportPaymentsCsv = () => {
+              const header = 'Ma_GD,Doc_Gia,Email,Ma_Phieu_Muon,Ten_Sach,So_Tien_VND,Phuong_Thuc,Trang_Thai,Thoi_Gian,Noi_Dung\n';
+              const rows = filteredPayments
+                .map((p) => {
+                  const cols = [
+                    p.transactionId || '',
+                    p.user?.fullName || '',
+                    p.user?.email || '',
+                    p.borrowRecord?.borrowCode || '',
+                    p.borrowRecord?.book?.title || '',
+                    p.amount || 0,
+                    p.paymentMethod || '',
+                    p.status || '',
+                    p.paymentDate || '',
+                    (p.orderInfo || '').replace(/,/g, ';'),
+                  ];
+                  return cols.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',');
+                })
+                .join('\n');
+              const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `Lich_Su_Thanh_Toan_${new Date().toISOString().split('T')[0]}.csv`;
+              link.click();
+            };
+
+            return (
+              <div>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', flexWrap: 'wrap', gap: '14px' }}>
+                  <div>
+                    <h1 style={{ fontSize: '1.45rem', fontWeight: '900', color: themeColors.textMain, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <CreditCard color="#10b981" size={24} /> Lịch Sử Thanh Toán &amp; Đối Soát Hóa Đơn
+                    </h1>
+                    <p style={{ color: themeColors.textMuted, fontSize: '0.82rem', margin: 0 }}>
+                      Quản lý toàn bộ giao dịch thu phí mượn sách, tiền phạt quá hạn qua cổng SePay VietQR tự động và VNPay.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={handleRefresh}
+                      disabled={refreshing}
+                      style={{
+                        background: isDark ? '#1e293b' : '#f1f5f9',
+                        border: `1px solid ${themeColors.border}`,
+                        color: themeColors.textMain,
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Làm mới
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleExportPaymentsCsv}
+                      style={{
+                        background: '#059669',
+                        border: 'none',
+                        color: '#ffffff',
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Download size={14} /> Xuất CSV Đối Soát
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Summary Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                  <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '18px 20px', borderLeft: '4px solid #10b981' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: themeColors.textMuted, marginBottom: '6px' }}>TỔNG DOANH THU THÀNH CÔNG</div>
+                    <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#10b981' }}>{totalSuccessAmount.toLocaleString('vi-VN')} VNĐ</div>
+                    <div style={{ fontSize: '0.73rem', color: themeColors.textMuted, marginTop: '4px' }}>Đã xác thực tự động qua Webhook</div>
+                  </div>
+
+                  <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '18px 20px', borderLeft: '4px solid #3b82f6' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: themeColors.textMuted, marginBottom: '6px' }}>GIAO DỊCH THÀNH CÔNG</div>
+                    <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#3b82f6' }}>{successCount} / {(payments || []).length} đơn</div>
+                    <div style={{ fontSize: '0.73rem', color: themeColors.textMuted, marginTop: '4px' }}>Tỷ lệ hoàn tất: {(payments || []).length ? Math.round((successCount / payments.length) * 100) : 0}%</div>
+                  </div>
+
+                  <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '18px 20px', borderLeft: '4px solid #f59e0b' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: themeColors.textMuted, marginBottom: '6px' }}>ĐANG CHỜ THANH TOÁN (PENDING)</div>
+                    <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#f59e0b' }}>{pendingCount} giao dịch</div>
+                    <div style={{ fontSize: '0.73rem', color: themeColors.textMuted, marginTop: '4px' }}>Đang chờ quét mã QR ngân hàng</div>
+                  </div>
+
+                  <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '18px 20px', borderLeft: '4px solid #8b5cf6' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: themeColors.textMuted, marginBottom: '6px' }}>CỔNG SEPAY VIETQR &amp; VNPAY</div>
+                    <div style={{ fontSize: '1.45rem', fontWeight: '900', color: '#8b5cf6' }}>{sepayCount} QR • {(payments || []).length - sepayCount} Khác</div>
+                    <div style={{ fontSize: '0.73rem', color: themeColors.textMuted, marginTop: '4px' }}>TPBank 49431072004 (LE HOAI LOC)</div>
+                  </div>
+                </div>
+
+                {/* Filter & Search Bar */}
+                <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '16px 20px', marginBottom: '18px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ position: 'relative', flex: '1 1 280px' }}>
+                    <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: themeColors.textMuted }} />
+                    <input
+                      type="text"
+                      value={paymentSearch}
+                      onChange={(e) => setPaymentSearch(e.target.value)}
+                      placeholder="Tìm theo mã giao dịch (SEPAY...), mã đơn LIB, tên độc giả, email, tên sách..."
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '9px 12px 9px 36px',
+                        borderRadius: '8px',
+                        border: `1px solid ${themeColors.border}`,
+                        backgroundColor: isDark ? '#0b0f19' : '#f8fafc',
+                        color: themeColors.textMain,
+                        fontSize: '0.82rem',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <select
+                      value={paymentStatusFilter}
+                      onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        border: `1px solid ${themeColors.border}`,
+                        backgroundColor: isDark ? '#0b0f19' : '#f8fafc',
+                        color: themeColors.textMain,
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                      }}
+                    >
+                      <option value="ALL">Tất cả trạng thái ({(payments || []).length})</option>
+                      <option value="SUCCESS">Đã thanh toán (SUCCESS)</option>
+                      <option value="PENDING">Chờ thanh toán (PENDING)</option>
+                      <option value="FAILED">Thất bại / Đã hủy (FAILED)</option>
+                    </select>
+
+                    <select
+                      value={paymentMethodFilter}
+                      onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        border: `1px solid ${themeColors.border}`,
+                        backgroundColor: isDark ? '#0b0f19' : '#f8fafc',
+                        color: themeColors.textMain,
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                      }}
+                    >
+                      <option value="ALL">Mọi phương thức</option>
+                      <option value="SEPAY">SePay VietQR</option>
+                      <option value="VNPAY">VNPay Sandbox/Gateway</option>
+                      <option value="CASH">Tiền mặt tại quầy</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Transactions Table */}
+                <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: isDark ? '#111827' : '#f8fafc', borderBottom: `1px solid ${themeColors.border}`, textAlign: 'left' }}>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>MÃ GIAO DỊCH</th>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>ĐỘC GIẢ</th>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>PHIẾU MƯỢN / NỘI DUNG</th>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>SỐ TIỀN</th>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>CỔNG TT</th>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>THỜI GIAN</th>
+                          <th style={{ padding: '12px 16px', color: themeColors.textMuted, fontWeight: '800' }}>TRẠNG THÁI</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredPayments.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} style={{ padding: '36px 20px', textAlign: 'center', color: themeColors.textMuted }}>
+                              Không tìm thấy giao dịch thanh toán nào khớp với bộ lọc hiện tại.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredPayments.map((p) => {
+                            const isSuccess = p.status === 'SUCCESS';
+                            const isPending = p.status === 'PENDING';
+                            return (
+                              <tr key={p.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
+                                <td style={{ padding: '13px 16px', fontWeight: '800', color: themeColors.textMain, fontFamily: 'monospace' }}>
+                                  {p.transactionId || `#PAY-${p.id}`}
+                                </td>
+                                <td style={{ padding: '13px 16px' }}>
+                                  <div style={{ fontWeight: '700', color: themeColors.textMain }}>{p.user?.fullName || 'Độc giả'}</div>
+                                  <div style={{ fontSize: '0.73rem', color: themeColors.textMuted }}>{p.user?.email || ''}</div>
+                                </td>
+                                <td style={{ padding: '13px 16px' }}>
+                                  {p.borrowRecord?.borrowCode && (
+                                    <span style={{ display: 'inline-block', padding: '2px 7px', borderRadius: '4px', backgroundColor: isDark ? '#1e293b' : '#eff6ff', color: '#2563eb', fontWeight: '800', fontSize: '0.72rem', marginRight: '6px' }}>
+                                      #{p.borrowRecord.borrowCode}
+                                    </span>
+                                  )}
+                                  <span style={{ color: themeColors.textMain, fontWeight: '600' }}>
+                                    {p.borrowRecord?.book?.title || p.orderInfo || 'Thanh toán phí thư viện'}
+                                  </span>
+                                  {p.orderInfo && p.borrowRecord?.book?.title && (
+                                    <div style={{ fontSize: '0.72rem', color: themeColors.textMuted, marginTop: '2px' }}>{p.orderInfo}</div>
+                                  )}
+                                </td>
+                                <td style={{ padding: '13px 16px', fontWeight: '900', color: isSuccess ? '#10b981' : themeColors.textMain }}>
+                                  {(Number(p.amount) || 0).toLocaleString('vi-VN')} đ
+                                </td>
+                                <td style={{ padding: '13px 16px' }}>
+                                  <span style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: '800', backgroundColor: isDark ? '#1e293b' : '#f1f5f9', color: themeColors.textMain }}>
+                                    {p.paymentMethod || 'SEPAY_QR'}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '13px 16px', color: themeColors.textMuted, fontSize: '0.76rem' }}>
+                                  {p.paymentDate ? new Date(p.paymentDate).toLocaleString('vi-VN') : '—'}
+                                </td>
+                                <td style={{ padding: '13px 16px' }}>
+                                  <span
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      padding: '4px 10px',
+                                      borderRadius: '20px',
+                                      fontSize: '0.72rem',
+                                      fontWeight: '800',
+                                      backgroundColor: isSuccess ? '#ecfdf5' : isPending ? '#fffbeb' : '#fef2f2',
+                                      color: isSuccess ? '#059669' : isPending ? '#d97706' : '#dc2626',
+                                      border: `1px solid ${isSuccess ? '#a7f3d0' : isPending ? '#fde68a' : '#fecaca'}`,
+                                    }}
+                                  >
+                                    {isSuccess ? '✓ Đã thanh toán' : isPending ? '⏳ Chờ thanh toán' : '✕ Thất bại'}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* SECTION: POPUP & BULLETIN MANAGEMENT (QUẢN LÝ POPUP & BẢN TIN) */}
           {activeMenu === 'popup' && (

@@ -91,18 +91,21 @@ public class AuthService {
 
     @Transactional
     public AuthResponse googleLogin(GoogleLoginRequest request) {
-        String effectiveEmail = request.getEmail();
+        String effectiveEmail = null;
         String effectiveName = request.getFullName();
         String effectiveAvatar = request.getAvatar();
 
-        // 1. Xác thực Google ID Token thật qua Google OAuth2 Tokeninfo Endpoint
-        if (request.getGoogleToken() != null && request.getGoogleToken().startsWith("ey")) {
+        String googleToken = request.getGoogleToken();
+        if (googleToken != null && !googleToken.trim().isEmpty()) {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                String verifyUrl = googleToken.startsWith("ey")
+                        ? "https://oauth2.googleapis.com/tokeninfo?id_token=" + java.net.URLEncoder.encode(googleToken, java.nio.charset.StandardCharsets.UTF_8)
+                        : "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + java.net.URLEncoder.encode(googleToken, java.nio.charset.StandardCharsets.UTF_8);
                 java.net.http.HttpRequest httpReq = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("https://oauth2.googleapis.com/tokeninfo?id_token=" + request.getGoogleToken()))
+                        .uri(java.net.URI.create(verifyUrl))
                         .GET()
-                        .timeout(java.time.Duration.ofSeconds(5))
+                        .timeout(java.time.Duration.ofSeconds(8))
                         .build();
                 java.net.http.HttpResponse<String> resp = client.send(httpReq, java.net.http.HttpResponse.BodyHandlers.ofString());
                 if (resp.statusCode() == 200 && resp.body().contains("\"email\"")) {
@@ -110,15 +113,19 @@ public class AuthService {
                     if (json.has("email")) effectiveEmail = json.get("email").asText();
                     if (json.has("name")) effectiveName = json.get("name").asText();
                     if (json.has("picture")) effectiveAvatar = json.get("picture").asText();
-                    log.info("Xác thực Google OAuth2 thành công cho tài khoản: {}", effectiveEmail);
+                    log.info("Xác thực Google OAuth2 thật thành công cho tài khoản: {}", effectiveEmail);
+                } else {
+                    throw new RuntimeException("Google Token không hợp lệ hoặc đã hết hạn (HTTP " + resp.statusCode() + ")");
                 }
+            } catch (RuntimeException re) {
+                throw re;
             } catch (Exception e) {
-                log.warn("Không thể kết nối Google Tokeninfo API, dùng thông tin dự phòng: {}", e.getMessage());
+                throw new RuntimeException("Không thể xác thực Google OAuth2 Token: " + e.getMessage());
             }
         }
 
         if (effectiveEmail == null || effectiveEmail.trim().isEmpty()) {
-            throw new RuntimeException("Email tài khoản Google không hợp lệ!");
+            throw new RuntimeException("Xác thực Google OAuth2 thất bại: Không nhận được token hợp lệ từ Google!");
         }
 
         Optional<User> optionalUser = userRepository.findByEmail(effectiveEmail);

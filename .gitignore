@@ -31,3 +31,10 @@ Desktop.ini
 .env
 .env.local
 .env.*.local
+
+# Agent Skills & Local Memory (Excluded from GitHub)
+.agents/
+.agent/
+GEMINI.md
+CLAUDE.md
+*.bat
