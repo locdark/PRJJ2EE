@@ -36,7 +36,6 @@ public class AiLibrarianService {
     @Value("${app.ai.gemini-api-key:}")
     private String defaultEnvGeminiKey;
 
-    private static final String BACKUP_GEMINI_KEY = "AIzaSyAib_hSoeofWTPJn-H1IBoTx13uPIRt9J4";
     private static final String DEFAULT_MODEL = "gemini-flash-lite-latest";
 
     private static final Set<String> STOP_WORDS = Set.of(
@@ -151,7 +150,6 @@ public class AiLibrarianService {
         if (defaultEnvGeminiKey != null && !defaultEnvGeminiKey.isBlank()) {
             keysToTry.add(defaultEnvGeminiKey.trim());
         }
-        keysToTry.add(BACKUP_GEMINI_KEY);
 
         String promptText = buildComprehensiveConsultantPrompt(userMessage, contextBooks, systemPrompt);
 
@@ -465,7 +463,8 @@ public class AiLibrarianService {
         if (defaultEnvGeminiKey != null && !defaultEnvGeminiKey.trim().isEmpty()) {
             return defaultEnvGeminiKey.trim();
         }
-        return BACKUP_GEMINI_KEY;
+        String sysEnv = System.getenv("GEMINI_API_KEY");
+        return sysEnv != null ? sysEnv.trim() : "";
     }
 
     private String getEffectiveGeminiModel(SystemSetting setting) {

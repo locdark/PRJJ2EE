@@ -51,9 +51,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/ai/**",
                                 "/api/vnpay/**",
                                 "/api/sepay/**",
                                 "/api/settings/**",
+                                "/api/upload/**",
+                                "/uploads/**",
                                 "/graphql",
                                 "/graphql/**",
                                 "/graphiql",
