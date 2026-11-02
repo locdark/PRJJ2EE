@@ -85,9 +85,13 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
     }
 
     const googleClientId = (activeSettings?.googleClientId || '').trim();
-    let googleRedirectUri = (
-      activeSettings?.googleRedirectUri || `${window.location.origin}/auth/callback/google`
-    ).trim();
+    const isCustomDomain =
+      window.location.hostname.includes('sanhoantien.click') ||
+      (!/^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname) &&
+        window.location.hostname !== 'localhost');
+    let googleRedirectUri = isCustomDomain
+      ? `${window.location.origin}/auth/callback/google`
+      : (activeSettings?.googleRedirectUri || `${window.location.origin}/auth/callback/google`).trim();
     // Google OAuth 2.0 requires a domain name (.nip.io) rather than a raw IPv4 address
     if (googleRedirectUri.includes('://160.191.244.153:')) {
       googleRedirectUri = googleRedirectUri.replace('://160.191.244.153:', '://160.191.244.153.nip.io:');

@@ -37,7 +37,7 @@ spring:
       printer:
         enabled: true
     cors:
-      allowed-origins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+      allowed-origins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,https://sanhoantien.click,http://sanhoantien.click,https://www.sanhoantien.click,http://www.sanhoantien.click,http://160.191.244.153:8088,http://160.191.244.153.nip.io:8088"
       allowed-methods: "*"
       allowed-headers: "*"
       allow-credentials: true

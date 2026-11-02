@@ -156,7 +156,7 @@ public class SystemSetting {
     private String googleClientSecret = "";
 
     @Builder.Default
-    private String googleRedirectUri = "http://160.191.244.153.nip.io:8088/auth/callback/google";
+    private String googleRedirectUri = "https://sanhoantien.click/auth/callback/google";
 
     @Builder.Default
     private boolean googleOAuthEnabled = true;
@@ -169,7 +169,7 @@ public class SystemSetting {
     private String facebookAppSecret = "";
 
     @Builder.Default
-    private String facebookRedirectUri = "http://160.191.244.153:8088/auth/callback/facebook";
+    private String facebookRedirectUri = "https://sanhoantien.click/auth/callback/facebook";
 
     @Builder.Default
     private boolean facebookOAuthEnabled = true;
