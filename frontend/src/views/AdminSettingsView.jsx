@@ -802,7 +802,7 @@ export default function AdminSettingsView({
             </div>
 
             {/* API Key & Model Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="admin-grid-2-asym" style={{ marginBottom: '20px' }}>
               
               {/* Gemini API Key */}
               <div>
@@ -1643,7 +1643,7 @@ export default function AdminSettingsView({
                         readOnly
                         className="input-field"
                         value={`${window.location.origin}/api/sepay/webhook`}
-                        style={{ flex: 1, minWidth: '220px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                        style={{ flex: 1, minWidth: '220px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}
                       />
                       <button
                         type="button"
@@ -1852,7 +1852,7 @@ export default function AdminSettingsView({
             <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Sliders size={18} color="var(--primary)" /> Định Mức Phí Phạt & Quy Định Mượn Sách
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="admin-grid-2">
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
                   Phí phạt trễ hạn mỗi ngày (VNĐ / Ngày)

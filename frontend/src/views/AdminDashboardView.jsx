@@ -242,7 +242,7 @@ export default function AdminDashboardView({
         maxHeight: '100vh',
         backgroundColor: themeColors.bgApp, 
         color: themeColors.textMain,
-        fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+        fontFamily: 'var(--font-sans)',
         overflow: 'hidden',
         position: 'fixed',
         inset: 0,
@@ -251,6 +251,19 @@ export default function AdminDashboardView({
     >
       
       {/* ================= 1. LEFT SIDEBAR (EXACT MATCH TO IMAGE 2) ================= */}
+      {mobileSidebarOpen && (
+        <div
+          className="show-on-mobile"
+          onClick={() => setMobileSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 85,
+          }}
+        />
+      )}
       <aside
         className={`admin-sidebar-panel ${!mobileSidebarOpen ? 'mobile-closed' : ''}`}
         style={{ 
@@ -479,21 +492,25 @@ export default function AdminDashboardView({
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflowY: 'auto' }}>
         
         {/* Top Header Bar (Breadcrumb, Server Port, Theme Toggle) */}
-        <header style={{ 
-          height: '52px', 
+        <header
+          className="admin-topbar-padding"
+          style={{ 
           minHeight: '52px',
+          paddingTop: '6px',
+          paddingBottom: '6px',
           backgroundColor: themeColors.bgTopBar, 
           borderBottom: `1px solid ${themeColors.border}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 28px',
+          flexWrap: 'wrap',
+          gap: '8px',
           position: 'sticky',
           top: 0,
           zIndex: 40
         }}>
           {/* Breadcrumb Left + Mobile Sidebar Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.8rem', color: themeColors.textMuted }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: themeColors.textMuted, minWidth: 0 }}>
             <button
               onClick={() => setMobileSidebarOpen((prev) => !prev)}
               className="admin-mobile-toggle"
@@ -506,23 +523,24 @@ export default function AdminDashboardView({
                 cursor: 'pointer',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
               title="Đóng/Mở Menu Quản Trị"
             >
               {mobileSidebarOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
-            <span>Hệ Thống</span>
-            <span>/</span>
-            <span style={{ color: themeColors.textMain, fontWeight: '700' }}>
+            <span className="hide-on-mobile">Hệ Thống</span>
+            <span className="hide-on-mobile">/</span>
+            <span style={{ color: themeColors.textMain, fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {menuGroups.flatMap(g => g.items).find(i => i.id === activeMenu)?.label || 'Báo Cáo & Phân Tích'}
             </span>
           </div>
 
           {/* Right Status Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             
             {/* Port Status Pill */}
-            <div style={{ 
+            <div className="hide-on-mobile" style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
               gap: '6px', 
@@ -607,7 +625,7 @@ export default function AdminDashboardView({
         </header>
 
         {/* Body Main Area */}
-        <main style={{ flex: 1, padding: '24px 32px 60px', width: '100%', boxSizing: 'border-box' }}>
+        <main className="admin-main-padding" style={{ flex: 1, width: '100%', boxSizing: 'border-box' }}>
           
           {/* ================= 3. BROADCAST BANNER (SHOWN IN OVERVIEW & POPUP CONSOLE) ================= */}
           {(activeMenu === 'overview' || activeMenu === 'popup') && (
@@ -929,7 +947,7 @@ export default function AdminDashboardView({
               </div>
 
               {/* Central Dual Wave Chart & Weekday Bars */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: '20px', marginBottom: '24px' }}>
+              <div className="admin-charts-row-main">
                 
                 {/* Dual Wave SVG Chart */}
                 <div style={{
@@ -1060,7 +1078,7 @@ export default function AdminDashboardView({
               </div>
 
               {/* Donut Charts & Category Breakdown */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '20px' }}>
+              <div className="admin-charts-row-sub">
                 
                 {/* Return Rate Ring */}
                 <div style={{
@@ -1506,7 +1524,7 @@ export default function AdminDashboardView({
                             const isPending = p.status === 'PENDING';
                             return (
                               <tr key={p.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
-                                <td style={{ padding: '13px 16px', fontWeight: '800', color: themeColors.textMain, fontFamily: 'monospace' }}>
+                                <td style={{ padding: '13px 16px', fontWeight: '800', color: themeColors.textMain, fontFamily: 'var(--font-mono)' }}>
                                   {p.transactionId || `#PAY-${p.id}`}
                                 </td>
                                 <td style={{ padding: '13px 16px' }}>
@@ -1644,7 +1662,7 @@ export default function AdminDashboardView({
               )}
 
               {/* 2-Column Responsive Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '24px', alignItems: 'start' }}>
+              <div className="admin-popup-editor-grid">
                 
                 {/* Column 1: Configuration Form */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

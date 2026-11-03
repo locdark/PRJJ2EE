@@ -462,7 +462,7 @@ export default function BookDetailModal({
                   color: 'var(--text-main)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
-                  fontFamily: citationFormat === 'BIBTEX' ? 'monospace' : 'inherit',
+                  fontFamily: citationFormat === 'BIBTEX' ? 'var(--font-mono)' : 'var(--font-sans)',
                   lineHeight: 1.5,
                 }}
               >

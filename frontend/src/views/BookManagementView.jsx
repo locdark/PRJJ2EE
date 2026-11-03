@@ -584,7 +584,7 @@ export default function BookManagementView() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-grid-2">
                 <div>
                   <label
                     style={{
@@ -628,7 +628,7 @@ export default function BookManagementView() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-grid-2">
                 <div>
                   <label
                     style={{
@@ -681,13 +681,7 @@ export default function BookManagementView() {
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '12px',
-                }}
-              >
+              <div className="form-grid-3">
                 <div>
                   <label
                     style={{

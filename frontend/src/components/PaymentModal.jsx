@@ -186,7 +186,7 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
             </div>
 
             {/* Selector: SePay vs VNPay */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+            <div className="form-grid-2" style={{ marginBottom: '24px' }}>
               <div 
                 onClick={() => setMethod('sepay')}
                 style={{ 

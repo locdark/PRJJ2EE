@@ -483,7 +483,7 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
                 </label>
 
                 {/* Preset Chips */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '10px' }}>
+                <div className="preset-grid-4" style={{ marginBottom: '10px' }}>
                   {[
                     { days: 7, label: '7 ngày' },
                     { days: 14, label: '14 ngày' },
@@ -577,7 +577,7 @@ export default function BorrowModal({ book, isOpen, onClose, onSuccess, onViewMy
                 <label style={{ fontSize: '0.8rem', color: '#475569', fontWeight: '700', display: 'block', marginBottom: '6px' }}>
                   Phương thức thanh toán tiền thuê:
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                <div className="payment-method-grid-3">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('COUNTER')}

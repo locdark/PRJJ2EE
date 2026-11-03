@@ -1018,7 +1018,7 @@ export default function CatalogView({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
                 gap: '16px',
                 marginBottom: '32px',
               }}
@@ -1069,7 +1069,7 @@ export default function CatalogView({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
                 gap: '16px',
                 marginBottom: '32px',
               }}
@@ -1390,7 +1390,7 @@ export default function CatalogView({
                       </td>
                       <td
                         style={{
-                          fontFamily: 'monospace',
+                          fontFamily: 'var(--font-mono)',
                           color: 'var(--text-muted)',
                           fontSize: '0.75rem',
                         }}
