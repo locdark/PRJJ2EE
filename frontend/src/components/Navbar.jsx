@@ -340,7 +340,7 @@ export default function Navbar({
               background: currentView === 'catalog' ? 'var(--primary)' : 'transparent',
               color: currentView === 'catalog' ? '#ffffff' : 'var(--text-main)',
               border: 'none',
-              padding: '7px 14px',
+              padding: '7px 12px',
               borderRadius: '7px',
               fontSize: '0.825rem',
               fontWeight: currentView === 'catalog' ? '700' : '600',
@@ -352,7 +352,7 @@ export default function Navbar({
               transition: 'all 0.15s ease',
             }}
           >
-            <SlidersHorizontal size={14} /> Tra cứu mục lục (OPAC)
+            <SlidersHorizontal size={14} /> Tra cứu mục lục <span className="hide-on-tablet">(OPAC)</span>
           </button>
 
           {/* Bulletin / Announcement Button */}
@@ -363,7 +363,7 @@ export default function Navbar({
                 background: 'var(--primary-light)',
                 color: 'var(--primary)',
                 border: '1px solid var(--border)',
-                padding: '6px 12px',
+                padding: '6px 11px',
                 borderRadius: '7px',
                 fontSize: '0.8rem',
                 fontWeight: '700',
@@ -375,7 +375,7 @@ export default function Navbar({
                 transition: 'all 0.15s ease',
               }}
             >
-              <Bell size={14} /> Bản Tin Thư Viện
+              <Bell size={14} /> Bản Tin <span className="hide-on-tablet">Thư Viện</span>
             </button>
           )}
 
@@ -495,7 +495,7 @@ export default function Navbar({
               background: wishlistCount > 0 ? '#fff1f2' : 'var(--bg-elevated)',
               border: wishlistCount > 0 ? '1px solid #fecdd3' : '1px solid var(--border)',
               color: wishlistCount > 0 ? '#e11d48' : 'var(--text-main)',
-              padding: '6px 10px',
+              padding: '6px 9px',
               borderRadius: '7px',
               fontSize: '0.75rem',
               fontWeight: '700',
@@ -503,6 +503,7 @@ export default function Navbar({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '5px',
+              flexShrink: 0,
             }}
           >
             <Heart
@@ -510,7 +511,7 @@ export default function Navbar({
               fill={wishlistCount > 0 ? '#e11d48' : 'none'}
               color={wishlistCount > 0 ? '#e11d48' : 'var(--primary)'}
             />
-            <span className="hide-on-mobile">Đã lưu</span>
+            <span className="hide-on-tablet">Đã lưu</span>
             {wishlistCount > 0 && (
               <span
                 style={{
@@ -528,7 +529,7 @@ export default function Navbar({
           </button>
 
           {/* Theme & Reading Comfort Accessibility Switcher */}
-          <div ref={comfortMenuRef} style={{ position: 'relative' }}>
+          <div ref={comfortMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
             <button
               onClick={() => setComfortMenuOpen((prev) => !prev)}
               title="Tùy chỉnh Giao diện & Cỡ chữ (Hỗ trợ thị lực)"
@@ -536,7 +537,7 @@ export default function Navbar({
                 background: comfortMenuOpen ? 'var(--primary-light)' : 'var(--bg-elevated)',
                 border: '1px solid var(--border)',
                 color: 'var(--text-main)',
-                padding: '6px 10px',
+                padding: '6px 9px',
                 borderRadius: '7px',
                 fontSize: '0.75rem',
                 fontWeight: '700',
@@ -544,10 +545,11 @@ export default function Navbar({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
+                flexShrink: 0,
               }}
             >
               <Palette size={14} color="var(--primary)" />
-              <span className="hide-on-mobile">Giao diện &amp; Cỡ chữ</span>
+              <span className="hide-on-tablet">Giao diện</span>
             </button>
 
             {comfortMenuOpen && (
@@ -701,7 +703,7 @@ export default function Navbar({
           </div>
 
           {/* User Account / Login (Desktop) */}
-          <div className="navbar-desktop-user">
+          <div className="navbar-desktop-user" style={{ flexShrink: 0 }}>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div
@@ -790,7 +792,16 @@ export default function Navbar({
               <button
                 onClick={onOpenAuth}
                 className="btn btn-primary"
-                style={{ padding: '7px 16px', fontSize: '0.8rem', borderRadius: '7px' }}
+                style={{
+                  padding: '7px 14px',
+                  fontSize: '0.8rem',
+                  borderRadius: '7px',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
               >
                 <LogIn size={15} /> Đăng nhập
               </button>

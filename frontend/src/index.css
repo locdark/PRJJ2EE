@@ -1170,7 +1170,20 @@ body {
 }
 
 /* 9. Navbar Responsive Breakpoints */
-@media (max-width: 1080px) {
+.hide-on-tablet {
+  display: inline;
+}
+
+@media (max-width: 1280px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+  .navbar-desktop-search {
+    max-width: 200px !important;
+  }
+}
+
+@media (max-width: 1180px) {
   .navbar-desktop-nav {
     display: none !important;
   }
@@ -1178,14 +1191,21 @@ body {
     display: none !important;
   }
   .navbar-desktop-user {
-    display: none !important;
+    display: flex !important;
+    flex-shrink: 0;
   }
   .navbar-mobile-toggle {
     display: flex !important;
   }
 }
 
-@media (min-width: 1081px) {
+@media (max-width: 540px) {
+  .navbar-desktop-user {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1181px) {
   .navbar-mobile-toggle {
     display: none !important;
   }
