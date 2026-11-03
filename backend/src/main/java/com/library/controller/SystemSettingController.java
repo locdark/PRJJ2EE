@@ -40,6 +40,11 @@ public class SystemSettingController {
         return ResponseEntity.ok(settingService.updateSettings(newSettings));
     }
 
+    @GetMapping("/server-metrics")
+    public ResponseEntity<Map<String, Object>> getServerMetrics() {
+        return ResponseEntity.ok(settingService.getServerHardwareMetrics());
+    }
+
     @GetMapping("/test-db")
     public ResponseEntity<Map<String, Object>> testDb() {
         return ResponseEntity.ok(settingService.testDatabaseStatus());

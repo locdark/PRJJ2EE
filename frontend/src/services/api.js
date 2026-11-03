@@ -170,6 +170,12 @@ export async function testDatabase(dbParams = null) {
 }
 
 
+export async function getServerMetrics() {
+  const res = await fetch(`${BASE_URL}/api/settings/server-metrics`);
+  if (!res.ok) throw new Error('Không thể tải thông số máy chủ');
+  return await res.json();
+}
+
 export async function testCloudflare(apiKey, zoneId) {
   const res = await fetch(`${BASE_URL}/api/settings/test-cloudflare`, {
     method: 'POST',
