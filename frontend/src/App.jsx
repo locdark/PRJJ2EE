@@ -120,6 +120,7 @@ export default function App() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentRecord, setPaymentRecord] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(30000);
+  const [myBorrowingsKey, setMyBorrowingsKey] = useState(0);
 
   // Active Borrowings count for navbar cart badge
   const [activeBorrowCount, setActiveBorrowCount] = useState(0);
@@ -616,7 +617,7 @@ export default function App() {
         )}
 
         {currentView === 'my-borrowings' && (
-          <MyBorrowingsView user={user} onPayFine={handlePayFine} />
+          <MyBorrowingsView key={myBorrowingsKey} user={user} onPayFine={handlePayFine} />
         )}
 
         {isAdminView && (
@@ -818,6 +819,7 @@ export default function App() {
         onSuccess={() => {
           loadBorrowCount();
           loadSystemStats();
+          setMyBorrowingsKey(k => k + 1);
           setCurrentView('my-borrowings');
         }}
       />

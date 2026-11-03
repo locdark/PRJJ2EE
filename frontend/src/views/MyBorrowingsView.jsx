@@ -697,7 +697,7 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                         onClick={() => onPayFine(rec, 28000)}
                         style={{ fontSize: '0.8rem', padding: '8px 14px' }}
                       >
-                        <QrCode size={14} /> Mã QR Thanh Toán
+                        <QrCode size={14} /> Chuyển khoản gia hạn (+14 ngày / 28.000đ)
                       </button>
                     )
                   )}

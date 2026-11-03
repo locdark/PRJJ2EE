@@ -196,11 +196,13 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.SUCCESS);
             payment.setPaymentDate(LocalDateTime.now());
 
-            // Cập nhật phiếu mượn nếu có
+            // Cập nhật phiếu mượn và tự động cộng ngày gia hạn
             if (payment.getBorrowRecord() != null) {
-                BorrowRecord record = payment.getBorrowRecord();
-                record.setFineAmount(0.0);
-                borrowRecordRepository.save(record);
+                applyPaymentExtensionToBorrowRecord(
+                        payment.getBorrowRecord(),
+                        payment.getAmount(),
+                        "VNPAY #" + vnp_TxnRef
+                );
             }
 
             // Gửi email biên lai thanh toán
@@ -305,16 +307,14 @@ public class PaymentService {
             matchedPayment.setVnpResponseCode("SEPAY_" + webhookDto.getReferenceCode());
 
             if (matchedPayment.getBorrowRecord() != null) {
-                BorrowRecord record = matchedPayment.getBorrowRecord();
-                record.setFineAmount(0.0);
-                if (record.getStatus() == com.library.entity.BorrowStatus.PENDING) {
-                    record.setStatus(com.library.entity.BorrowStatus.BORROWED);
-                }
-                String currentNote = record.getNotes() != null ? record.getNotes() : "";
-                if (!currentNote.contains("ĐÃ THANH TOÁN")) {
-                    record.setNotes(currentNote + " • [ĐÃ THANH TOÁN SEPAY #" + webhookDto.getReferenceCode() + "]");
-                }
-                borrowRecordRepository.save(record);
+                Double payAmount = webhookDto.getTransferAmount() != null && webhookDto.getTransferAmount() > 0
+                        ? webhookDto.getTransferAmount()
+                        : matchedPayment.getAmount();
+                applyPaymentExtensionToBorrowRecord(
+                        matchedPayment.getBorrowRecord(),
+                        payAmount,
+                        "SEPAY #" + webhookDto.getReferenceCode()
+                );
             }
 
             paymentRepository.save(matchedPayment);
@@ -325,6 +325,39 @@ public class PaymentService {
 
         log.info("No matching pending payment found for content: {}", content);
         return true;
+    }
+
+    private void applyPaymentExtensionToBorrowRecord(BorrowRecord record, Double amount, String referenceNote) {
+        if (record == null) return;
+
+        record.setFineAmount(0.0);
+
+        // Mỗi 2.000 VNĐ tương ứng với 1 ngày thuê (theo bảng giá chuẩn hệ thống), mặc định tối thiểu 7 ngày nếu nộp tiền
+        int extraDays = (amount != null && amount >= 2000) ? (int) Math.round(amount / 2000.0) : 7;
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        if (record.getStatus() == com.library.entity.BorrowStatus.PENDING) {
+            record.setStatus(com.library.entity.BorrowStatus.BORROWED);
+            if (record.getBorrowDate() == null) {
+                record.setBorrowDate(today);
+            }
+            record.setDueDate(today.plusDays(extraDays > 0 ? extraDays : 14));
+        } else {
+            // Đang mượn hoặc Quá hạn -> tự động cộng thêm ngày gia hạn
+            java.time.LocalDate baseDueDate = (record.getDueDate() != null && record.getDueDate().isAfter(today))
+                    ? record.getDueDate()
+                    : today;
+            record.setDueDate(baseDueDate.plusDays(extraDays));
+            record.setStatus(com.library.entity.BorrowStatus.BORROWED);
+        }
+
+        String currentNote = record.getNotes() != null ? record.getNotes() : "";
+        String extensionTag = " • [ĐÃ GIA HẠN +" + extraDays + " NGÀY - " + referenceNote + "]";
+        if (!currentNote.contains(referenceNote)) {
+            record.setNotes(currentNote + extensionTag);
+        }
+        borrowRecordRepository.save(record);
+        log.info("Successfully extended borrow record #{} by {} days. New due date: {}", record.getId(), extraDays, record.getDueDate());
     }
 
     public List<Payment> getAllPayments() {
