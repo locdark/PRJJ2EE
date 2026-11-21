@@ -11,11 +11,13 @@ import com.library.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -75,11 +77,7 @@ public class PaymentService {
 
     @Transactional
     public VNPayPaymentResponse createVNPayPaymentUrl(Long borrowRecordId, Double amount, String ipAddress, User user) {
-        BorrowRecord record = null;
-        if (borrowRecordId != null) {
-            record = borrowRecordRepository.findById(borrowRecordId)
-                    .orElse(null);
-        }
+        BorrowRecord record = validatePaymentRequest(borrowRecordId, amount, user);
 
         String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
         String vnp_OrderInfo = "Thanh toan phi muon sach SmartLibrary #" + (record != null ? record.getBorrowCode() : vnp_TxnRef);
@@ -157,31 +155,41 @@ public class PaymentService {
         String vnp_ResponseCode = params.get("vnp_ResponseCode");
         String vnp_SecureHash = params.get("vnp_SecureHash");
 
-        // Verify vnp_SecureHash if present and secret key is configured
+        if (vnp_TxnRef == null || vnp_TxnRef.isBlank()) {
+            throw new RuntimeException("Thiếu mã giao dịch VNPay");
+        }
+
+        // Bắt buộc xác thực chữ ký HMAC-SHA512 từ VNPay
         String hashSecret = getEffectiveVnpHashSecret();
-        if (vnp_SecureHash != null && !vnp_SecureHash.isEmpty()
-                && hashSecret != null && !hashSecret.isEmpty()
-                && !hashSecret.startsWith("DEMO_")) {
-            List<String> fieldNames = new ArrayList<>(params.keySet());
-            fieldNames.remove("vnp_SecureHash");
-            fieldNames.remove("vnp_SecureHashType");
-            Collections.sort(fieldNames);
-            StringBuilder hashData = new StringBuilder();
-            Iterator<String> itr = fieldNames.iterator();
-            while (itr.hasNext()) {
-                String fieldName = itr.next();
-                String fieldValue = params.get(fieldName);
-                if (fieldValue != null && !fieldValue.isEmpty()) {
-                    hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
-                    if (itr.hasNext()) {
-                        hashData.append('&');
-                    }
+        if (hashSecret == null || hashSecret.isBlank() || hashSecret.startsWith("DEMO_")) {
+            throw new RuntimeException("VNPay chưa được cấu hình chữ ký bảo mật hợp lệ");
+        }
+        if (vnp_SecureHash == null || vnp_SecureHash.isBlank()) {
+            throw new RuntimeException("Thiếu chữ ký xác thực VNPay");
+        }
+
+        List<String> fieldNames = new ArrayList<>(params.keySet());
+        fieldNames.remove("vnp_SecureHash");
+        fieldNames.remove("vnp_SecureHashType");
+        Collections.sort(fieldNames);
+        StringBuilder hashData = new StringBuilder();
+        Iterator<String> itr = fieldNames.iterator();
+        while (itr.hasNext()) {
+            String fieldName = itr.next();
+            String fieldValue = params.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                if (itr.hasNext()) {
+                    hashData.append('&');
                 }
             }
-            String calculatedHash = VNPayConfig.hmacSHA512(hashSecret, hashData.toString());
-            if (!calculatedHash.equalsIgnoreCase(vnp_SecureHash)) {
-                log.warn("VNPay SecureHash mismatch for transaction {}: expected {}, got {}", vnp_TxnRef, calculatedHash, vnp_SecureHash);
-            }
+        }
+        String calculatedHash = VNPayConfig.hmacSHA512(hashSecret, hashData.toString());
+        if (!MessageDigest.isEqual(
+                calculatedHash.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8),
+                vnp_SecureHash.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8))) {
+            log.warn("VNPay SecureHash mismatch for transaction {}", vnp_TxnRef);
+            throw new RuntimeException("Chữ ký xác thực VNPay không hợp lệ");
         }
 
         Optional<Payment> optionalPayment = paymentRepository.findByTransactionId(vnp_TxnRef);
@@ -190,6 +198,19 @@ public class PaymentService {
         }
 
         Payment payment = optionalPayment.get();
+        if (payment.getStatus() == PaymentStatus.SUCCESS) {
+            return payment;
+        }
+
+        String vnpAmountRaw = params.get("vnp_Amount");
+        if (vnpAmountRaw != null && !vnpAmountRaw.isBlank() && payment.getAmount() != null) {
+            long paidX100 = Long.parseLong(vnpAmountRaw);
+            long expectedX100 = Math.round(payment.getAmount() * 100);
+            if (paidX100 < expectedX100) {
+                throw new RuntimeException("Số tiền thanh toán VNPay không khớp");
+            }
+        }
+
         payment.setVnpResponseCode(vnp_ResponseCode);
 
         if ("00".equals(vnp_ResponseCode)) {
@@ -218,10 +239,7 @@ public class PaymentService {
 
     @Transactional
     public SepayPaymentResponse createSepayPayment(Long borrowRecordId, Double amount, User user) {
-        BorrowRecord record = null;
-        if (borrowRecordId != null) {
-            record = borrowRecordRepository.findById(borrowRecordId).orElse(null);
-        }
+        BorrowRecord record = validatePaymentRequest(borrowRecordId, amount, user);
 
         SystemSetting settings = systemSettingService != null ? systemSettingService.getSettings() : null;
         String effectiveAccNum = (settings != null && settings.getSepayAccountNumber() != null && !settings.getSepayAccountNumber().isEmpty())
@@ -272,12 +290,22 @@ public class PaymentService {
         String effectiveApiKey = (settings != null && settings.getSepayApiKey() != null && !settings.getSepayApiKey().isEmpty())
                 ? settings.getSepayApiKey() : sepayApiKey;
 
-        // Kiểm tra bảo mật ApiKey (nếu cấu hình)
-        if (effectiveApiKey != null && !effectiveApiKey.isEmpty() && !effectiveApiKey.startsWith("SEPAY_DEMO")) {
-            if (authHeader == null || !authHeader.contains(effectiveApiKey)) {
-                log.warn("Unauthorized SePay Webhook request!");
-                return false;
-            }
+        // Bắt buộc kiểm tra ApiKey cho webhook SePay
+        if (effectiveApiKey == null || effectiveApiKey.isBlank() || effectiveApiKey.startsWith("SEPAY_DEMO")) {
+            log.warn("Rejected SePay Webhook: API Key not configured");
+            return false;
+        }
+        String providedKey = authHeader == null ? "" : authHeader.trim();
+        if (providedKey.regionMatches(true, 0, "Apikey ", 0, 7)) {
+            providedKey = providedKey.substring(7).trim();
+        } else if (providedKey.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            providedKey = providedKey.substring(7).trim();
+        }
+        if (!MessageDigest.isEqual(
+                providedKey.getBytes(StandardCharsets.UTF_8),
+                effectiveApiKey.getBytes(StandardCharsets.UTF_8))) {
+            log.warn("Unauthorized SePay Webhook request!");
+            return false;
         }
 
         String content = webhookDto.getContent() != null ? webhookDto.getContent() : webhookDto.getDescription();
@@ -302,13 +330,19 @@ public class PaymentService {
         }
 
         if (matchedPayment != null) {
+            Double expectedAmount = matchedPayment.getAmount();
+            Double transferAmount = webhookDto.getTransferAmount();
+            if (expectedAmount != null && (transferAmount == null || transferAmount < expectedAmount)) {
+                log.warn("SePay transfer amount {} is below expected {} for payment {}", transferAmount, expectedAmount, matchedPayment.getId());
+                return false;
+            }
             matchedPayment.setStatus(PaymentStatus.SUCCESS);
             matchedPayment.setPaymentDate(LocalDateTime.now());
             matchedPayment.setVnpResponseCode("SEPAY_" + webhookDto.getReferenceCode());
 
             if (matchedPayment.getBorrowRecord() != null) {
-                Double payAmount = webhookDto.getTransferAmount() != null && webhookDto.getTransferAmount() > 0
-                        ? webhookDto.getTransferAmount()
+                Double payAmount = transferAmount != null && transferAmount > 0
+                        ? transferAmount
                         : matchedPayment.getAmount();
                 applyPaymentExtensionToBorrowRecord(
                         matchedPayment.getBorrowRecord(),
@@ -325,6 +359,25 @@ public class PaymentService {
 
         log.info("No matching pending payment found for content: {}", content);
         return true;
+    }
+
+    private BorrowRecord validatePaymentRequest(Long borrowRecordId, Double amount, User user) {
+        if (user == null) {
+            throw new AccessDeniedException("Unauthorized");
+        }
+        if (amount == null || amount.isNaN() || amount.isInfinite() || amount <= 0 || amount > 50_000_000) {
+            throw new RuntimeException("Số tiền thanh toán không hợp lệ");
+        }
+        if (borrowRecordId == null) {
+            return null;
+        }
+        BorrowRecord record = borrowRecordRepository.findById(borrowRecordId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu mượn"));
+        boolean isStaff = user.getRole() == Role.ROLE_ADMIN || user.getRole() == Role.ROLE_LIBRARIAN;
+        if (!isStaff && (record.getUser() == null || !record.getUser().getId().equals(user.getId()))) {
+            throw new AccessDeniedException("Không có quyền thanh toán phiếu mượn này");
+        }
+        return record;
     }
 
     private void applyPaymentExtensionToBorrowRecord(BorrowRecord record, Double amount, String referenceNote) {

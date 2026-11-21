@@ -22,16 +22,16 @@ import { showToast } from './Toast';
 
 const THEME_OPTIONS = [
   { id: 'academic-light', name: 'Academic Light', desc: 'Sáng tiêu chuẩn', color: '#1d4ed8' },
-  { id: 'modern-dark', name: 'Modern Dark', desc: 'Tối hiện đại', color: '#3b82f6' },
+  { id: 'modern-dark', name: 'Modern Dark', desc: 'Tối hiện đại', color: '#2563eb' },
   { id: 'emerald-scholar', name: 'Emerald Scholar', desc: 'Học thuật xanh', color: '#047857' },
-  { id: 'orange-white', name: 'Orange White', desc: 'Trắng cam ấm', color: '#d97706' },
+  { id: 'orange-white', name: 'Orange White', desc: 'Trắng cam ấm', color: '#c2410c' },
   { id: 'oxford-navy', name: 'Oxford Navy', desc: 'Hải quân & Vàng', color: '#1e3a8a' },
 ];
 
 const FONT_SCALES = [
-  { value: '100%', label: '100% (Chuẩn)' },
-  { value: '110%', label: '110% (Lớn)' },
-  { value: '120%', label: '120% (Rất rõ)' },
+  { value: '100%', label: '100% Mặc định' },
+  { value: '110%', label: '110% Cỡ lớn' },
+  { value: '120%', label: '120% Siêu rõ' },
 ];
 
 export default function Navbar({
@@ -338,7 +338,7 @@ export default function Navbar({
             onClick={() => setCurrentView('catalog')}
             style={{
               background: currentView === 'catalog' ? 'var(--primary)' : 'transparent',
-              color: currentView === 'catalog' ? '#ffffff' : 'var(--text-main)',
+              color: currentView === 'catalog' ? 'var(--on-primary)' : 'var(--text-main)',
               border: 'none',
               padding: '7px 12px',
               borderRadius: '7px',
@@ -352,7 +352,7 @@ export default function Navbar({
               transition: 'all 0.15s ease',
             }}
           >
-            <SlidersHorizontal size={14} /> Tra cứu mục lục <span className="hide-on-tablet">(OPAC)</span>
+            <SlidersHorizontal size={14} /> Tra cứu mục lục
           </button>
 
           {/* Bulletin / Announcement Button */}
@@ -361,8 +361,8 @@ export default function Navbar({
               onClick={onOpenAnnouncement}
               style={{
                 background: 'var(--primary-light)',
-                color: 'var(--primary)',
-                border: '1px solid var(--border)',
+                color: 'var(--primary-text)',
+                border: '1px solid var(--primary-border, var(--border))',
                 padding: '6px 11px',
                 borderRadius: '7px',
                 fontSize: '0.8rem',
@@ -490,11 +490,11 @@ export default function Navbar({
               if (onOpenWishlist) onOpenWishlist();
               else setCurrentView('catalog');
             }}
-            title="Tủ sách Đọc sau / Yêu thích"
+            title="Tủ sách Đọc sau & Yêu thích"
             style={{
-              background: wishlistCount > 0 ? '#fff1f2' : 'var(--bg-elevated)',
-              border: wishlistCount > 0 ? '1px solid #fecdd3' : '1px solid var(--border)',
-              color: wishlistCount > 0 ? '#e11d48' : 'var(--text-main)',
+              background: wishlistCount > 0 ? 'var(--wishlist-bg)' : 'var(--bg-elevated)',
+              border: wishlistCount > 0 ? '1px solid var(--wishlist-border, var(--border))' : '1px solid var(--border)',
+              color: wishlistCount > 0 ? 'var(--wishlist-text)' : 'var(--text-main)',
               padding: '6px 9px',
               borderRadius: '7px',
               fontSize: '0.75rem',
@@ -508,15 +508,15 @@ export default function Navbar({
           >
             <Heart
               size={14}
-              fill={wishlistCount > 0 ? '#e11d48' : 'none'}
-              color={wishlistCount > 0 ? '#e11d48' : 'var(--primary)'}
+              fill={wishlistCount > 0 ? 'var(--wishlist-text)' : 'none'}
+              color={wishlistCount > 0 ? 'var(--wishlist-text)' : 'var(--primary-text)'}
             />
             <span className="hide-on-tablet">Đã lưu</span>
             {wishlistCount > 0 && (
               <span
                 style={{
-                  background: '#e11d48',
-                  color: '#ffffff',
+                  background: 'var(--wishlist-text)',
+                  color: 'var(--wishlist-bg)',
                   fontSize: '0.65rem',
                   padding: '0 5px',
                   borderRadius: '10px',
@@ -532,7 +532,7 @@ export default function Navbar({
           <div ref={comfortMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
             <button
               onClick={() => setComfortMenuOpen((prev) => !prev)}
-              title="Tùy chỉnh Giao diện & Cỡ chữ (Hỗ trợ thị lực)"
+              title="Tùy chỉnh Giao diện và Cỡ chữ"
               style={{
                 background: comfortMenuOpen ? 'var(--primary-light)' : 'var(--bg-elevated)',
                 border: '1px solid var(--border)',
@@ -585,7 +585,7 @@ export default function Navbar({
                       gap: '6px',
                     }}
                   >
-                    <Type size={13} color="var(--primary)" /> CỠ CHỮ ĐỌC SÁCH (ACCESSIBILITY)
+                    <Type size={13} color="var(--primary-text)" /> CỠ CHỮ HIỂN THỊ
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
                     {FONT_SCALES.map((item) => {
@@ -600,7 +600,7 @@ export default function Navbar({
                             borderRadius: '7px',
                             border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
                             background: active ? 'var(--primary-light)' : 'var(--bg-elevated)',
-                            color: active ? 'var(--primary)' : 'var(--text-main)',
+                            color: active ? 'var(--primary-text)' : 'var(--text-main)',
                             fontSize: '0.72rem',
                             fontWeight: active ? '800' : '600',
                             cursor: 'pointer',
@@ -630,7 +630,7 @@ export default function Navbar({
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Palette size={13} color="var(--primary)" /> 5 CHỦ ĐỀ THƯ VIỆN
+                      <Palette size={13} color="var(--primary-text)" /> 5 CHỦ ĐỀ THƯ VIỆN
                     </span>
                     <button
                       type="button"
@@ -638,7 +638,7 @@ export default function Navbar({
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--primary)',
+                        color: 'var(--primary-text)',
                         fontSize: '0.7rem',
                         fontWeight: '700',
                         cursor: 'pointer',
@@ -962,7 +962,7 @@ export default function Navbar({
                 gap: '10px',
               }}
             >
-              <SlidersHorizontal size={18} color="var(--primary)" /> Tra cứu mục lục (OPAC)
+              <SlidersHorizontal size={18} color="var(--primary-text)" /> Tra cứu mục lục
             </button>
 
             {settings?.popupNavButtonEnabled !== false && (
@@ -1076,7 +1076,7 @@ export default function Navbar({
                   gap: '10px',
                 }}
               >
-                <Shield size={18} color="#38bdf8" /> Quản Trị Hệ Thống (ADMIN)
+                <Shield size={18} color="#38bdf8" /> Quản Trị Hệ Thống
               </button>
             )}
           </div>

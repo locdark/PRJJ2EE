@@ -31,22 +31,33 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final EmailService emailService;
+    private final SystemSettingService systemSettingService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email đã được đăng ký trong hệ thống: " + request.getEmail());
+        String normalizedEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+        if (normalizedEmail.isEmpty() || !normalizedEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            throw new RuntimeException("Địa chỉ email không hợp lệ!");
+        }
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            throw new RuntimeException("Mật khẩu phải có ít nhất 6 ký tự!");
+        }
+        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập họ và tên!");
+        }
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            throw new RuntimeException("Email đã được đăng ký trong hệ thống: " + normalizedEmail);
         }
 
         User user = User.builder()
-                .email(request.getEmail())
+                .email(normalizedEmail)
                 .password(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getFullName())
+                .fullName(request.getFullName().trim())
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .role(Role.ROLE_READER)
                 .provider("LOCAL")
-                .avatar("https://api.dicebear.com/7.x/bottts/svg?seed=" + request.getEmail())
+                .avatar("https://api.dicebear.com/7.x/bottts/svg?seed=" + normalizedEmail)
                 .enabled(true)
                 .build();
 
@@ -110,6 +121,16 @@ public class AuthService {
                 java.net.http.HttpResponse<String> resp = client.send(httpReq, java.net.http.HttpResponse.BodyHandlers.ofString());
                 if (resp.statusCode() == 200 && resp.body().contains("\"email\"")) {
                     com.fasterxml.jackson.databind.JsonNode json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(resp.body());
+                    if (json.has("email_verified") && "false".equalsIgnoreCase(json.get("email_verified").asText())) {
+                        throw new RuntimeException("Email Google chưa được xác minh!");
+                    }
+                    String configuredGoogleClientId = systemSettingService != null && systemSettingService.getSettings() != null
+                            ? systemSettingService.getSettings().getGoogleClientId()
+                            : null;
+                    if (json.has("aud") && configuredGoogleClientId != null && !configuredGoogleClientId.isBlank()
+                            && !configuredGoogleClientId.equals(json.get("aud").asText())) {
+                        throw new RuntimeException("Google Token không thuộc ứng dụng hợp lệ!");
+                    }
                     if (json.has("email")) effectiveEmail = json.get("email").asText();
                     if (json.has("name")) effectiveName = json.get("name").asText();
                     if (json.has("picture")) effectiveAvatar = json.get("picture").asText();
@@ -169,28 +190,69 @@ public class AuthService {
 
     @Transactional
     public AuthResponse facebookLogin(com.library.dto.FacebookLoginRequest request) {
-        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        String fbToken = request.getFacebookToken();
+        if (fbToken == null || fbToken.trim().isEmpty()) {
+            throw new RuntimeException("Facebook Token không hợp lệ hoặc đã hết hạn!");
+        }
+
+        String effectiveEmail = null;
+        String effectiveName = null;
+        String effectiveAvatar = null;
+
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            String verifyUrl = "https://graph.facebook.com/me?fields=id,name,email,picture&access_token="
+                    + java.net.URLEncoder.encode(fbToken.trim(), java.nio.charset.StandardCharsets.UTF_8);
+            java.net.http.HttpRequest httpReq = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(verifyUrl))
+                    .GET()
+                    .timeout(java.time.Duration.ofSeconds(8))
+                    .build();
+            java.net.http.HttpResponse<String> resp = client.send(httpReq, java.net.http.HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() == 200) {
+                com.fasterxml.jackson.databind.JsonNode json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(resp.body());
+                String fbId = json.hasNonNull("id") ? json.get("id").asText() : null;
+                if (fbId == null || fbId.isBlank()) {
+                    throw new RuntimeException("Facebook Token không hợp lệ hoặc đã hết hạn!");
+                }
+                effectiveEmail = json.hasNonNull("email") && !json.get("email").asText().isBlank()
+                        ? json.get("email").asText().trim().toLowerCase()
+                        : fbId + "@facebook.com";
+                effectiveName = json.hasNonNull("name") ? json.get("name").asText() : "Facebook User";
+                if (json.has("picture") && json.get("picture").has("data") && json.get("picture").get("data").hasNonNull("url")) {
+                    effectiveAvatar = json.get("picture").get("data").get("url").asText();
+                }
+            } else {
+                throw new RuntimeException("Facebook Token không hợp lệ hoặc đã hết hạn!");
+            }
+        } catch (RuntimeException re) {
+            throw re;
+        } catch (Exception e) {
+            throw new RuntimeException("Facebook Token không hợp lệ hoặc đã hết hạn!");
+        }
+
+        Optional<User> optionalUser = userRepository.findByEmail(effectiveEmail);
         User user;
 
         if (optionalUser.isPresent()) {
             user = optionalUser.get();
-            if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
-                user.setAvatar(request.getAvatar());
+            if (effectiveAvatar != null && !effectiveAvatar.isEmpty()) {
+                user.setAvatar(effectiveAvatar);
             }
-            if (request.getFullName() != null && !request.getFullName().isEmpty()) {
-                user.setFullName(request.getFullName());
+            if (effectiveName != null && !effectiveName.isEmpty()) {
+                user.setFullName(effectiveName);
             }
             userRepository.save(user);
         } else {
             user = User.builder()
-                    .email(request.getEmail())
-                    .fullName(request.getFullName() != null ? request.getFullName() : "Facebook User")
-                    .avatar(request.getAvatar() != null ? request.getAvatar() : 
-                            "https://api.dicebear.com/7.x/bottts/svg?seed=" + request.getEmail())
+                    .email(effectiveEmail)
+                    .fullName(effectiveName != null ? effectiveName : "Facebook User")
+                    .avatar(effectiveAvatar != null ? effectiveAvatar :
+                            "https://api.dicebear.com/7.x/bottts/svg?seed=" + effectiveEmail)
                     .role(Role.ROLE_READER)
                     .provider("FACEBOOK")
                     .enabled(true)
-                    .password(passwordEncoder.encode("FACEBOOK_OAUTH_" + System.currentTimeMillis()))
+                    .password(passwordEncoder.encode("FACEBOOK_OAUTH_" + java.util.UUID.randomUUID()))
                     .build();
             user = userRepository.save(user);
             emailService.sendWelcomeEmail(user);

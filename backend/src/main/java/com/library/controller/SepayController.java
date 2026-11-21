@@ -8,7 +8,9 @@ import com.library.service.AuthService;
 import com.library.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -16,7 +18,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/sepay")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Slf4j
 public class SepayController {
 
@@ -29,6 +30,9 @@ public class SepayController {
             @RequestParam Double amount
     ) {
         User user = authService.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return ResponseEntity.ok(paymentService.createSepayPayment(recordId, amount, user));
     }
 
@@ -37,16 +41,28 @@ public class SepayController {
             @RequestBody SepayWebhookDto webhookDto,
             @RequestHeader(value = "Authorization", required = false) String authHeader
     ) {
-        log.info("Incoming SePay Webhook notification: {}", webhookDto);
+        log.info("Incoming SePay Webhook notification: ref={}", webhookDto != null ? webhookDto.getReferenceCode() : null);
         boolean success = paymentService.processSepayWebhook(webhookDto, authHeader);
-        return ResponseEntity.ok(Map.of("success", success));
+        if (!success) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false));
+        }
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @GetMapping("/status/{transactionId}")
     public ResponseEntity<Payment> checkPaymentStatus(@PathVariable String transactionId) {
+        User user = authService.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         Payment payment = paymentService.getPaymentByTransactionId(transactionId);
         if (payment == null) {
             return ResponseEntity.notFound().build();
+        }
+        boolean isStaff = user.getRole() == com.library.entity.Role.ROLE_ADMIN
+                || user.getRole() == com.library.entity.Role.ROLE_LIBRARIAN;
+        if (!isStaff && (payment.getUser() == null || !payment.getUser().getId().equals(user.getId()))) {
+            throw new AccessDeniedException("Bạn không có quyền xem trạng thái giao dịch này!");
         }
         return ResponseEntity.ok(payment);
     }

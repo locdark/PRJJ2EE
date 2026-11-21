@@ -11,7 +11,7 @@ export default function Footer({ settings, stats, onOpenPolicy }) {
     settings?.address || '828 Sư Vạn Hạnh, Phường 13, Quận 10, TP. Hồ Chí Minh';
   const phone = settings?.contactPhone || '1900 6868';
   const email = settings?.contactEmail || 'hotro@smartlib.edu.vn';
-  const openingHours = settings?.openingHours || 'Thứ 2 – Thứ 7 (07:30 – 21:00)';
+  const openingHours = settings?.openingHours || 'Thứ 2 – Thứ 7 • 07:30 – 21:00';
   const totalBooks = stats?.totalBooks || 100;
   const totalCopies = stats?.totalCopies || 520;
   const availableCopies = stats?.availableCopies || (totalCopies - (stats?.activeBorrows || 12));
@@ -289,16 +289,16 @@ export default function Footer({ settings, stats, onOpenPolicy }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'rgba(16, 185, 129, 0.12)',
-                padding: '5px 10px',
+                background: 'var(--success-bg)',
+                padding: '6px 10px',
                 borderRadius: '6px',
-                border: '1px solid rgba(16, 185, 129, 0.35)',
+                border: '1px solid var(--success-border)',
                 cursor: 'pointer',
                 width: 'fit-content',
               }}
             >
-              <ShieldCheck size={15} color="#10b981" />
-              <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#10b981' }}>
+              <ShieldCheck size={15} color="var(--success-text)" />
+              <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--success-text)' }}>
                 Chuẩn Thư Viện Đại Học Quốc Gia
               </span>
             </div>
@@ -331,22 +331,22 @@ export default function Footer({ settings, stats, onOpenPolicy }) {
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', fontSize: '0.8rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Giờ mở cửa:</span>
+                <span style={{ color: 'var(--text-muted)' }}>Giờ mở cửa</span>
                 <strong style={{ color: 'var(--text-main)', textAlign: 'right' }}>{openingHours}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Tổng học liệu:</span>
-                <strong style={{ color: 'var(--primary)' }}>
-                  {totalBooks} đầu sách ({totalCopies} bản)
+                <span style={{ color: 'var(--text-muted)' }}>Tổng học liệu</span>
+                <strong style={{ color: 'var(--primary-text)' }}>
+                  {totalBooks} đầu sách • {totalCopies} bản
                 </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Sách sẵn sàng mượn:</span>
-                <strong style={{ color: '#059669' }}>{availableCopies} bản</strong>
+                <span style={{ color: 'var(--text-muted)' }}>Sách sẵn sàng mượn</span>
+                <strong style={{ color: 'var(--success-text)' }}>{availableCopies} bản</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Hỗ trợ mượn tối đa:</span>
-                <strong style={{ color: '#d97706' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Hỗ trợ mượn tối đa</span>
+                <strong style={{ color: 'var(--warning-text)' }}>
                   {maxBorrowLimit} cuốn / {settings?.defaultBorrowDays || 14} ngày
                 </strong>
               </div>
@@ -359,9 +359,9 @@ export default function Footer({ settings, stats, onOpenPolicy }) {
                   borderTop: '1px solid var(--border)',
                 }}
               >
-                <span style={{ color: 'var(--text-muted)' }}>Không gian đọc:</span>
-                <span style={{ color: '#10b981', fontWeight: '700', textAlign: 'right' }}>
-                  Tầng 1 – Tầng 4 (Tự học &amp; Nhóm)
+                <span style={{ color: 'var(--text-muted)' }}>Không gian đọc</span>
+                <span style={{ color: 'var(--success-text)', fontWeight: '700', textAlign: 'right' }}>
+                  Tầng 1 – Tầng 4 • Tự học &amp; Nhóm
                 </span>
               </div>
             </div>
@@ -383,8 +383,8 @@ export default function Footer({ settings, stats, onOpenPolicy }) {
           gap: '14px',
         }}
       >
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          © 2026 Trung tâm Thông tin – Thư viện Đại học ({siteTitle} University). Mọi quyền được bảo lưu.
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          © 2026 Trung tâm Thông tin – Thư viện Đại học {siteTitle}. Mọi quyền được bảo lưu.
         </div>
 
         <button

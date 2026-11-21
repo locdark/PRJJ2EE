@@ -51,7 +51,7 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: 'Xin chào! Tôi là **Trợ lý Học thuật Thư viện Đại học** 🤖✨\n\nTôi có thể giúp bạn:\n- Tìm kiếm giáo trình theo môn học, chuyên ngành hoặc mã ISBN\n- Đề xuất tài liệu tham khảo & tóm tắt nội dung học thuật\n- Gợi ý lộ trình đọc sách phục vụ tiểu luận, đồ án và khóa luận tốt nghiệp',
+      text: 'Xin chào! Tôi là **Trợ lý Học thuật Thư viện Đại học**.\n\nTôi có thể hỗ trợ bạn:\n- Tìm kiếm giáo trình theo môn học, chuyên ngành hoặc mã ISBN\n- Đề xuất tài liệu tham khảo & tóm tắt nội dung học thuật\n- Gợi ý lộ trình đọc sách phục vụ tiểu luận, đồ án và khóa luận tốt nghiệp',
       books: [],
       topics: [
         'Giáo trình Công nghệ thông tin & Phần mềm',
@@ -167,25 +167,26 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h3
+                  className="editorial-heading"
                   style={{
                     fontSize: '1.15rem',
-                    fontWeight: '900',
+                    fontWeight: '700',
                     color: 'var(--text-main)',
                     margin: 0,
                   }}
                 >
                   Trợ Lý Thư Viện AI
                 </h3>
-                <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                  GOOGLE GEMINI PRO
+                <span className="badge badge-primary" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                  GEMINI PRO
                 </span>
               </div>
               <p
                 style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--primary)',
+                  fontSize: '0.78rem',
+                  color: 'var(--primary-text)',
                   margin: 0,
-                  fontWeight: '700',
+                  fontWeight: '600',
                 }}
               >
                 Tư vấn tra cứu &amp; hỗ trợ độc giả mượn sách 24/7
@@ -276,12 +277,12 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
                       style={{
                         fontSize: '0.75rem',
                         fontWeight: '800',
-                        color: 'var(--primary)',
+                        color: 'var(--primary-text)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
                       }}
                     >
-                      📚 TÀI LIỆU KHUYÊN ĐỌC TỪ KHO THƯ VIỆN:
+                      TÀI LIỆU KHUYÊN ĐỌC TỪ KHO THƯ VIỆN
                     </div>
 
                     <div

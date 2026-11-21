@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { X, Sparkles, BookOpen, Calendar, ArrowRight, Bell, CheckCircle2 } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
 
-export default function AnnouncementModal({ 
-  isOpen, 
-  onClose, 
-  onGoCatalog, 
-  settings 
+export default function AnnouncementModal({
+  isOpen,
+  onClose,
+  onGoCatalog,
+  settings,
 }) {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
@@ -23,179 +23,183 @@ export default function AnnouncementModal({
     if (onGoCatalog) onGoCatalog();
   };
 
-  const title = settings?.popupTitle || 'Thông Báo: Khai Trương Kho Sách Số & Tuần Lễ Văn Hóa Đọc 2026';
-  const badgeText = settings?.popupBadgeText || 'HOT • BẢN TIN SỐ #1792776375';
-  const bannerUrl = settings?.popupBannerUrl || 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1000';
-  const content = settings?.popupContent || 'Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary! Nhằm phục vụ đợt thi học kỳ và nhu cầu nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn/độc giả, miễn phí đọc 100 tài liệu số chuyên ngành. Trợ lý AI Gemini đã sẵn sàng hỗ trợ tra cứu 24/7.';
-  const linkText = settings?.popupLinkText || 'Xem Kho Sách & Tra Cứu';
+  const title =
+    settings?.popupTitle ||
+    'Khai trương Kho Sách Số & Tuần lễ Văn hóa Đọc 2026';
+  const badgeText = settings?.popupBadgeText || 'BẢN TIN THƯ VIỆN';
+  const bannerUrl =
+    settings?.popupBannerUrl ||
+    'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1000';
+  const content =
+    settings?.popupContent ||
+    'Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary. Nhằm phục vụ kỳ thi và nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn mỗi tài khoản và mở truy cập 100 đầu sách chuyên ngành chọn lọc.';
+  const linkText = settings?.popupLinkText || 'Khám phá Kho Sách';
 
   return (
-    <div style={{ 
-      position: 'fixed', 
-      inset: 0, 
-      zIndex: 150, 
-      background: 'rgba(15, 23, 42, 0.75)', 
-      backdropFilter: 'blur(8px)', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      padding: '16px' 
-    }}>
-      <div 
-        className="animate-fade-in" 
-        style={{ 
-          width: '100%', 
-          maxWidth: '640px', 
-          maxHeight: '90vh', 
-          overflowY: 'auto', 
-          background: '#ffffff', 
-          borderRadius: '20px', 
-          border: '1px solid #bfdbfe', 
-          boxShadow: '0 25px 60px -15px rgba(29, 78, 216, 0.35)', 
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 150,
+        background: 'rgba(15, 23, 42, 0.72)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        className="animate-fade-in"
+        style={{
+          width: '100%',
+          maxWidth: '620px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          background: 'var(--bg-card)',
+          borderRadius: '20px',
+          border: '1px solid var(--border)',
+          boxShadow: 'var(--shadow-xl)',
           position: 'relative',
-          color: '#0f172a'
+          color: 'var(--text-main)',
         }}
       >
-        {/* Close Button */}
-        <button 
-          onClick={handleClose} 
-          style={{ 
-            position: 'absolute', 
-            top: '16px', 
-            right: '16px', 
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Đóng thông báo"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
             zIndex: 10,
-            background: 'rgba(255, 255, 255, 0.9)', 
-            border: 'none', 
-            color: '#475569', 
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-main)',
             cursor: 'pointer',
-            padding: '7px',
+            width: '36px',
+            height: '36px',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+            boxShadow: 'var(--shadow-md)',
           }}
         >
           <X size={18} />
         </button>
 
-        {/* Banner Image */}
-        <div style={{ position: 'relative', width: '100%', height: '220px', overflow: 'hidden' }}>
-          <img 
-            src={bannerUrl} 
-            alt="Library Announcement Banner" 
+        <div style={{ position: 'relative', width: '100%', height: '216px', overflow: 'hidden' }}>
+          <img
+            src={bannerUrl}
+            alt="Ảnh minh họa thông báo thư viện"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
-          <div style={{ 
-            position: 'absolute', 
-            inset: 0, 
-            background: 'linear-gradient(to top, rgba(15, 23, 42, 0.75) 0%, transparent 60%)' 
-          }} />
-          
-          {/* Badge Tag */}
-          <div style={{ 
-            position: 'absolute', 
-            bottom: '16px', 
-            left: '20px', 
-            background: '#1d4ed8', 
-            color: '#ffffff', 
-            padding: '4px 12px', 
-            borderRadius: '6px', 
-            fontSize: '0.75rem', 
-            fontWeight: '800',
-            letterSpacing: '0.04em',
-            boxShadow: '0 2px 8px rgba(29, 78, 216, 0.4)'
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(15, 23, 42, 0.8) 0%, transparent 65%)',
+            }}
+          />
+
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '16px',
+              left: '24px',
+              background: 'var(--primary)',
+              color: 'var(--on-primary)',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: '800',
+              letterSpacing: '0.04em',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
             {badgeText}
           </div>
         </div>
 
-        {/* Content Body */}
         <div style={{ padding: '24px 28px 28px' }}>
-          
-          <h2 style={{ 
-            fontSize: '1.45rem', 
-            fontWeight: '900', 
-            color: '#0f172a', 
-            marginBottom: '12px', 
-            lineHeight: 1.35, 
-            letterSpacing: '-0.02em' 
-          }}>
+          <h2
+            className="editorial-heading"
+            style={{
+              fontSize: '1.45rem',
+              fontWeight: '700',
+              color: 'var(--text-main)',
+              marginBottom: '12px',
+              lineHeight: 1.35,
+            }}
+          >
             {title}
           </h2>
 
-          <div style={{ 
-            fontSize: '0.875rem', 
-            color: '#334155', 
-            lineHeight: 1.7, 
-            background: '#f8fafc', 
-            border: '1px solid #e2e8f0', 
-            borderRadius: '12px', 
-            padding: '16px 20px', 
-            marginBottom: '22px',
-            whiteSpace: 'pre-line'
-          }}>
+          <div
+            style={{
+              fontSize: '0.9rem',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.7,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              borderRadius: '12px',
+              padding: '16px 20px',
+              marginBottom: '22px',
+              whiteSpace: 'pre-line',
+            }}
+          >
             {content}
           </div>
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
-            <button 
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
               onClick={handleAction}
-              style={{ 
-                flex: 1, 
-                padding: '12px 20px', 
-                borderRadius: '8px', 
-                background: '#1d4ed8', 
-                color: '#ffffff', 
-                border: 'none', 
-                fontSize: '0.9rem', 
-                fontWeight: '800', 
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(29, 78, 216, 0.35)'
-              }}
+              className="btn btn-primary"
+              style={{ flex: 1, minHeight: '44px', fontSize: '0.9rem', fontWeight: '700' }}
             >
               <BookOpen size={17} /> {linkText}
             </button>
 
-            <button 
+            <button
+              type="button"
               onClick={handleClose}
-              style={{ 
-                padding: '12px 18px', 
-                borderRadius: '8px', 
-                background: '#f1f5f9', 
-                color: '#475569', 
-                border: '1px solid #cbd5e1', 
-                fontSize: '0.85rem', 
-                fontWeight: '700', 
-                cursor: 'pointer'
-              }}
+              className="btn btn-outline"
+              style={{ minHeight: '44px', fontSize: '0.875rem', padding: '0 20px' }}
             >
-              Đã Hiểu
+              Đóng
             </button>
           </div>
 
-          {/* Checkbox: Don't show again today */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.775rem', color: '#64748b' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-              <input 
-                type="checkbox" 
-                checked={dontShowAgain} 
-                onChange={e => setDontShowAgain(e.target.checked)} 
-                style={{ accentColor: '#1d4ed8' }}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+              fontSize: '0.8rem',
+              color: 'var(--text-muted)',
+            }}
+          >
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={dontShowAgain}
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+                style={{ accentColor: 'var(--primary)', width: '16px', height: '16px' }}
               />
-              Không hiển thị lại thông báo này hôm nay
+              Không hiển thị lại trong hôm nay
             </label>
 
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontWeight: '700' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Tin chính thức từ Thư viện
+            <span
+              className="badge badge-success"
+              style={{ fontSize: '0.75rem' }}
+            >
+              Thông báo chính thức từ Thư viện
             </span>
           </div>
-
         </div>
       </div>
     </div>

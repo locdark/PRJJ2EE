@@ -15,10 +15,10 @@ spring:
 
   h2:
     console:
-      enabled: true
+      enabled: ${H2_CONSOLE_ENABLED:false}
       path: /h2-console
       settings:
-        web-allow-others: true
+        web-allow-others: false
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
@@ -31,15 +31,15 @@ spring:
 
   graphql:
     graphiql:
-      enabled: true
+      enabled: ${GRAPHIQL_ENABLED:false}
       path: /graphiql
     schema:
       printer:
-        enabled: true
+        enabled: ${GRAPHQL_SCHEMA_PRINTER:false}
     cors:
-      allowed-origins: "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,https://sanhoantien.click,http://sanhoantien.click,https://www.sanhoantien.click,http://www.sanhoantien.click,http://160.191.244.153:8088,http://160.191.244.153.nip.io:8088"
-      allowed-methods: "*"
-      allowed-headers: "*"
+      allowed-origins: "http://localhost:5173,http://127.0.0.1:5173,https://sanhoantien.click,http://sanhoantien.click,https://www.sanhoantien.click,http://www.sanhoantien.click"
+      allowed-methods: "GET,POST,OPTIONS"
+      allowed-headers: "Authorization,Content-Type,X-Requested-With,Accept"
       allow-credentials: true
 
   mail:
@@ -56,7 +56,7 @@ spring:
 
 app:
   jwt:
-    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     expiration-ms: 2592000000 # 30 days
   vnpay:
     tmn-code: 2QXUI4B4

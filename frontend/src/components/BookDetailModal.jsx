@@ -10,6 +10,7 @@ import {
   Send,
   CheckCircle2,
   Volume2,
+  VolumeX,
   Square,
   Quote,
   Copy,
@@ -223,13 +224,13 @@ export default function BookDetailModal({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    background: '#ecfdf5',
-                    color: '#047857',
-                    border: '1px solid #a7f3d0',
-                    padding: '2px 8px',
+                    background: 'var(--success-bg)',
+                    color: 'var(--success-text)',
+                    border: '1px solid var(--success-border)',
+                    padding: '3px 9px',
                     borderRadius: '6px',
                     fontWeight: '700',
-                    fontSize: '0.75rem',
+                    fontSize: '0.76rem',
                   }}
                 >
                   <MapPin size={12} /> {book.shelfLocation || 'Kệ A-01'}
@@ -241,13 +242,13 @@ export default function BookDetailModal({
                 </span>
                 <span
                   style={{
-                    padding: '2px 8px',
+                    padding: '3px 9px',
                     borderRadius: '6px',
                     fontWeight: '700',
-                    fontSize: '0.75rem',
-                    backgroundColor: book.availableCopies > 0 ? '#ecfdf5' : '#fef2f2',
-                    color: book.availableCopies > 0 ? '#047857' : '#b91c1c',
-                    border: book.availableCopies > 0 ? '1px solid #a7f3d0' : '1px solid #fecaca',
+                    fontSize: '0.76rem',
+                    backgroundColor: book.availableCopies > 0 ? 'var(--success-bg)' : 'var(--danger-bg)',
+                    color: book.availableCopies > 0 ? 'var(--success-text)' : 'var(--danger-text)',
+                    border: book.availableCopies > 0 ? '1px solid var(--success-border)' : '1px solid var(--danger-border)',
                   }}
                 >
                   {book.availableCopies > 0
@@ -260,7 +261,7 @@ export default function BookDetailModal({
 
           {/* Details & Actions */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               <span className="badge badge-primary">
                 {book.category?.name || 'Giáo trình chung'}
               </span>
@@ -269,23 +270,27 @@ export default function BookDetailModal({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  color: '#d97706',
-                  fontSize: '0.85rem',
-                  fontWeight: '800',
+                  color: 'var(--rating-text)',
+                  background: 'var(--rating-bg)',
+                  border: '1px solid var(--rating-border)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: '700',
                 }}
               >
-                <Star size={16} fill="#f59e0b" color="#f59e0b" /> {book.rating || 5.0} / 5.0
+                <Star size={14} fill="var(--rating-star)" color="var(--rating-star)" /> {book.rating || 5.0} / 5.0
               </div>
             </div>
 
             <h2
+              className="editorial-heading"
               style={{
                 fontSize: '1.65rem',
-                fontWeight: '900',
+                fontWeight: '700',
                 color: 'var(--text-main)',
                 marginBottom: '12px',
                 lineHeight: '1.3',
-                letterSpacing: '-0.02em',
               }}
             >
               {book.title}
@@ -345,12 +350,12 @@ export default function BookDetailModal({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '4px 10px',
+                    padding: '5px 12px',
                     borderRadius: '999px',
-                    border: isSpeaking ? '1px solid #ef4444' : '1px solid var(--border)',
-                    background: isSpeaking ? '#fef2f2' : 'var(--bg-elevated)',
-                    color: isSpeaking ? '#dc2626' : 'var(--primary)',
-                    fontSize: '0.75rem',
+                    border: isSpeaking ? '1px solid var(--danger-border)' : '1px solid var(--border)',
+                    background: isSpeaking ? 'var(--danger-bg)' : 'var(--bg-elevated)',
+                    color: isSpeaking ? 'var(--danger-text)' : 'var(--primary-text)',
+                    fontSize: '0.78rem',
                     fontWeight: '700',
                     cursor: 'pointer',
                   }}
@@ -405,7 +410,7 @@ export default function BookDetailModal({
                     color: 'var(--text-main)',
                   }}
                 >
-                  <Quote size={14} color="var(--primary)" /> Trích dẫn Học thuật (Citation)
+                  <Quote size={14} color="var(--primary-text)" /> Trích dẫn học thuật
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {['APA', 'IEEE', 'BIBTEX'].map((fmt) => (
@@ -414,20 +419,20 @@ export default function BookDetailModal({
                       type="button"
                       onClick={() => setCitationFormat(fmt)}
                       style={{
-                        padding: '3px 9px',
+                        padding: '4px 10px',
                         borderRadius: '6px',
-                        fontSize: '0.7rem',
-                        fontWeight: '800',
+                        fontSize: '0.72rem',
+                        fontWeight: '700',
                         border:
                           citationFormat === fmt
                             ? '1px solid var(--primary)'
                             : '1px solid var(--border)',
                         background: citationFormat === fmt ? 'var(--primary)' : 'var(--bg-card)',
-                        color: citationFormat === fmt ? '#ffffff' : 'var(--text-muted)',
+                        color: citationFormat === fmt ? 'var(--on-primary)' : 'var(--text-muted)',
                         cursor: 'pointer',
                       }}
                     >
-                      {fmt === 'APA' ? 'APA 7th' : fmt}
+                      {fmt === 'APA' ? 'APA 7' : fmt}
                     </button>
                   ))}
                   <button
@@ -437,13 +442,13 @@ export default function BookDetailModal({
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      padding: '3px 9px',
+                      padding: '4px 10px',
                       borderRadius: '6px',
-                      fontSize: '0.72rem',
-                      fontWeight: '800',
-                      border: '1px solid var(--primary)',
+                      fontSize: '0.74rem',
+                      fontWeight: '700',
+                      border: '1px solid var(--primary-border, var(--border))',
                       background: 'var(--primary-light)',
-                      color: 'var(--primary)',
+                      color: 'var(--primary-text)',
                       cursor: 'pointer',
                     }}
                   >
@@ -528,9 +533,13 @@ export default function BookDetailModal({
               fontWeight: '800',
               color: 'var(--text-main)',
               marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            Đánh Giá &amp; Nhận Xét Từ Độc Giả ({book.reviews ? book.reviews.length : 0})
+            Đánh Giá &amp; Nhận Xét Từ Độc Giả
+            <span className="pill-count">{book.reviews ? book.reviews.length : 0}</span>
           </h3>
 
           {user ? (
@@ -561,11 +570,11 @@ export default function BookDetailModal({
                   className="input-field"
                   style={{ width: 'auto', fontWeight: '700', fontSize: '0.85rem' }}
                 >
-                  <option value="5">⭐⭐⭐⭐⭐ (5 sao)</option>
-                  <option value="4">⭐⭐⭐⭐ (4 sao)</option>
-                  <option value="3">⭐⭐⭐ (3 sao)</option>
-                  <option value="2">⭐⭐ (2 sao)</option>
-                  <option value="1">⭐ (1 sao)</option>
+                  <option value="5">5 sao — Xuất sắc</option>
+                  <option value="4">4 sao — Rất hay</option>
+                  <option value="3">3 sao — Hài lòng</option>
+                  <option value="2">2 sao — Trung bình</option>
+                  <option value="1">1 sao — Cần cải thiện</option>
                 </select>
               </div>
 
@@ -588,7 +597,7 @@ export default function BookDetailModal({
                 <div
                   style={{
                     marginTop: '8px',
-                    color: '#10b981',
+                    color: 'var(--success-text)',
                     fontWeight: '700',
                     fontSize: '0.825rem',
                     display: 'flex',

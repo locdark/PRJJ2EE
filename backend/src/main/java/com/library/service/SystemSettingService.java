@@ -20,6 +20,7 @@ import java.sql.DriverManager;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -112,34 +113,34 @@ public class SystemSettingService {
         SystemSetting current = getSettings();
 
         // Website Branding
-        current.setSiteTitle(update.getSiteTitle());
-        current.setSiteSubtitle(update.getSiteSubtitle());
-        current.setLogoUrl(update.getLogoUrl());
-        current.setContactEmail(update.getContactEmail());
-        current.setContactPhone(update.getContactPhone());
-        current.setAddress(update.getAddress());
-        current.setOpeningHours(update.getOpeningHours());
+        if (update.getSiteTitle() != null) current.setSiteTitle(update.getSiteTitle());
+        if (update.getSiteSubtitle() != null) current.setSiteSubtitle(update.getSiteSubtitle());
+        if (update.getLogoUrl() != null) current.setLogoUrl(update.getLogoUrl());
+        if (update.getContactEmail() != null) current.setContactEmail(update.getContactEmail());
+        if (update.getContactPhone() != null) current.setContactPhone(update.getContactPhone());
+        if (update.getAddress() != null) current.setAddress(update.getAddress());
+        if (update.getOpeningHours() != null) current.setOpeningHours(update.getOpeningHours());
 
         // VNPay
-        current.setVnpTmnCode(update.getVnpTmnCode());
-        current.setVnpHashSecret(update.getVnpHashSecret());
-        current.setVnpPayUrl(update.getVnpPayUrl());
+        if (update.getVnpTmnCode() != null) current.setVnpTmnCode(update.getVnpTmnCode());
+        if (update.getVnpHashSecret() != null) current.setVnpHashSecret(update.getVnpHashSecret());
+        if (update.getVnpPayUrl() != null) current.setVnpPayUrl(update.getVnpPayUrl());
 
         // SePay
-        current.setSepayAccountNumber(update.getSepayAccountNumber());
-        current.setSepayBankCode(update.getSepayBankCode());
-        current.setSepayAccountName(update.getSepayAccountName());
-        current.setSepayApiKey(update.getSepayApiKey());
+        if (update.getSepayAccountNumber() != null) current.setSepayAccountNumber(update.getSepayAccountNumber());
+        if (update.getSepayBankCode() != null) current.setSepayBankCode(update.getSepayBankCode());
+        if (update.getSepayAccountName() != null) current.setSepayAccountName(update.getSepayAccountName());
+        if (update.getSepayApiKey() != null) current.setSepayApiKey(update.getSepayApiKey());
 
         // Cloudflare
-        current.setCloudflareApiKey(update.getCloudflareApiKey());
-        current.setCloudflareZoneId(update.getCloudflareZoneId());
-        current.setCloudflareAccountEmail(update.getCloudflareAccountEmail());
+        if (update.getCloudflareApiKey() != null) current.setCloudflareApiKey(update.getCloudflareApiKey());
+        if (update.getCloudflareZoneId() != null) current.setCloudflareZoneId(update.getCloudflareZoneId());
+        if (update.getCloudflareAccountEmail() != null) current.setCloudflareAccountEmail(update.getCloudflareAccountEmail());
         current.setCloudflareProxyEnabled(update.isCloudflareProxyEnabled());
 
         // Rules & Theme
-        current.setLateFinePerDay(update.getLateFinePerDay());
-        current.setDefaultBorrowDays(update.getDefaultBorrowDays());
+        if (update.getLateFinePerDay() != null) current.setLateFinePerDay(update.getLateFinePerDay());
+        if (update.getDefaultBorrowDays() != null) current.setDefaultBorrowDays(update.getDefaultBorrowDays());
         if (update.getMaxBorrowLimit() != null && update.getMaxBorrowLimit() > 0) {
             current.setMaxBorrowLimit(update.getMaxBorrowLimit());
         }
@@ -147,36 +148,36 @@ public class SystemSettingService {
         if (update.getTotalSearchHits() != null) current.setTotalSearchHits(update.getTotalSearchHits());
         if (update.getTodaySearchHits() != null) current.setTodaySearchHits(update.getTodaySearchHits());
         if (update.getActiveReadersCount() != null) current.setActiveReadersCount(update.getActiveReadersCount());
-        current.setThemeName(update.getThemeName());
+        if (update.getThemeName() != null) current.setThemeName(update.getThemeName());
 
         // Database Config
-        current.setDbType(update.getDbType());
-        current.setDbHost(update.getDbHost());
-        current.setDbPort(update.getDbPort());
-        current.setDbName(update.getDbName());
-        current.setDbUsername(update.getDbUsername());
-        current.setDbPassword(update.getDbPassword());
-        current.setDbJdbcUrl(update.getDbJdbcUrl());
-        current.setDbDriverClassName(update.getDbDriverClassName());
-        current.setDbMaxPoolSize(update.getDbMaxPoolSize());
-        current.setDbMinIdle(update.getDbMinIdle());
+        if (update.getDbType() != null) current.setDbType(update.getDbType());
+        if (update.getDbHost() != null) current.setDbHost(update.getDbHost());
+        if (update.getDbPort() != null) current.setDbPort(update.getDbPort());
+        if (update.getDbName() != null) current.setDbName(update.getDbName());
+        if (update.getDbUsername() != null) current.setDbUsername(update.getDbUsername());
+        if (update.getDbPassword() != null) current.setDbPassword(update.getDbPassword());
+        if (update.getDbJdbcUrl() != null) current.setDbJdbcUrl(update.getDbJdbcUrl());
+        if (update.getDbDriverClassName() != null) current.setDbDriverClassName(update.getDbDriverClassName());
+        if (update.getDbMaxPoolSize() != null) current.setDbMaxPoolSize(update.getDbMaxPoolSize());
+        if (update.getDbMinIdle() != null) current.setDbMinIdle(update.getDbMinIdle());
 
         // Gemini AI Config
-        current.setGeminiApiKey(update.getGeminiApiKey());
-        current.setGeminiModel(update.getGeminiModel());
+        if (update.getGeminiApiKey() != null) current.setGeminiApiKey(update.getGeminiApiKey());
+        if (update.getGeminiModel() != null) current.setGeminiModel(update.getGeminiModel());
         current.setGeminiEnabled(update.isGeminiEnabled());
-        current.setGeminiSystemPrompt(update.getGeminiSystemPrompt());
+        if (update.getGeminiSystemPrompt() != null) current.setGeminiSystemPrompt(update.getGeminiSystemPrompt());
 
         // Google OAuth 2.0 Config
-        current.setGoogleClientId(update.getGoogleClientId());
-        current.setGoogleClientSecret(update.getGoogleClientSecret());
-        current.setGoogleRedirectUri(update.getGoogleRedirectUri());
+        if (update.getGoogleClientId() != null) current.setGoogleClientId(update.getGoogleClientId());
+        if (update.getGoogleClientSecret() != null) current.setGoogleClientSecret(update.getGoogleClientSecret());
+        if (update.getGoogleRedirectUri() != null) current.setGoogleRedirectUri(update.getGoogleRedirectUri());
         current.setGoogleOAuthEnabled(update.isGoogleOAuthEnabled());
 
         // Facebook Login Config
-        current.setFacebookAppId(update.getFacebookAppId());
-        current.setFacebookAppSecret(update.getFacebookAppSecret());
-        current.setFacebookRedirectUri(update.getFacebookRedirectUri());
+        if (update.getFacebookAppId() != null) current.setFacebookAppId(update.getFacebookAppId());
+        if (update.getFacebookAppSecret() != null) current.setFacebookAppSecret(update.getFacebookAppSecret());
+        if (update.getFacebookRedirectUri() != null) current.setFacebookRedirectUri(update.getFacebookRedirectUri());
         current.setFacebookOAuthEnabled(update.isFacebookOAuthEnabled());
 
         // Popup & Bulletin Config
@@ -191,6 +192,42 @@ public class SystemSettingService {
         SystemSetting saved = repository.save(current);
         this.cachedSettings = saved;
         return saved;
+    }
+
+    public Map<String, Object> getPublicSettings() {
+        SystemSetting s = getSettings();
+        Map<String, Object> pub = new java.util.LinkedHashMap<>();
+        pub.put("siteTitle", s.getSiteTitle());
+        pub.put("siteSubtitle", s.getSiteSubtitle());
+        pub.put("logoUrl", s.getLogoUrl());
+        pub.put("contactEmail", s.getContactEmail());
+        pub.put("contactPhone", s.getContactPhone());
+        pub.put("address", s.getAddress());
+        pub.put("openingHours", s.getOpeningHours());
+        pub.put("sepayAccountNumber", s.getSepayAccountNumber());
+        pub.put("sepayBankCode", s.getSepayBankCode());
+        pub.put("sepayAccountName", s.getSepayAccountName());
+        pub.put("lateFinePerDay", s.getLateFinePerDay());
+        pub.put("defaultBorrowDays", s.getDefaultBorrowDays());
+        pub.put("maxBorrowLimit", s.getMaxBorrowLimit());
+        pub.put("moitVerificationEnabled", s.isMoitVerificationEnabled());
+        pub.put("themeName", s.getThemeName());
+        pub.put("geminiEnabled", s.isGeminiEnabled());
+        pub.put("googleClientId", s.getGoogleClientId());
+        pub.put("googleRedirectUri", s.getGoogleRedirectUri());
+        pub.put("googleOAuthEnabled", s.isGoogleOAuthEnabled());
+        pub.put("facebookAppId", s.getFacebookAppId());
+        pub.put("facebookRedirectUri", s.getFacebookRedirectUri());
+        pub.put("facebookOAuthEnabled", s.isFacebookOAuthEnabled());
+        pub.put("popupEnabled", s.isPopupEnabled());
+        pub.put("popupNavButtonEnabled", s.isPopupNavButtonEnabled());
+        pub.put("popupTitle", s.getPopupTitle());
+        pub.put("popupBadgeText", s.getPopupBadgeText());
+        pub.put("popupBannerUrl", s.getPopupBannerUrl());
+        pub.put("popupContent", s.getPopupContent());
+        pub.put("popupLinkText", s.getPopupLinkText());
+        pub.put("cloudflareProxyEnabled", s.isCloudflareProxyEnabled());
+        return pub;
     }
 
     public Map<String, Object> getRealSystemStats() {
@@ -353,13 +390,29 @@ public class SystemSettingService {
      */
     public Map<String, Object> testCustomDatabase(String dbType, String host, String port, String name, String username, String password, String jdbcUrl) {
         String effectiveType = dbType != null ? dbType.trim().toUpperCase() : "MYSQL";
+        if (!Set.of("MYSQL", "POSTGRESQL", "SQLSERVER", "ORACLE", "H2").contains(effectiveType)) {
+            return Map.of("success", false, "dbType", effectiveType, "latencyMs", 0, "message", "Loại CSDL không nằm trong danh sách cho phép!");
+        }
         String targetHost = (host != null && !host.trim().isEmpty()) ? host.trim() : "localhost";
+        if (!targetHost.matches("^[a-zA-Z0-9._-]+$")
+                || targetHost.startsWith("169.254.")
+                || "0.0.0.0".equals(targetHost)
+                || "::".equals(targetHost)
+                || "metadata.google.internal".equalsIgnoreCase(targetHost)) {
+            return Map.of("success", false, "dbType", effectiveType, "latencyMs", 0, "message", "Địa chỉ máy chủ CSDL không hợp lệ hoặc bị từ chối vì lý do bảo mật!");
+        }
         int targetPort = 3306;
         try {
             targetPort = Integer.parseInt(port != null ? port.trim() : "3306");
         } catch (NumberFormatException ignored) {
         }
+        if (targetPort < 1 || targetPort > 65535) {
+            return Map.of("success", false, "dbType", effectiveType, "latencyMs", 0, "message", "Cổng kết nối CSDL phải nằm trong khoảng 1–65535!");
+        }
         String targetDbName = (name != null && !name.trim().isEmpty()) ? name.trim() : "library_db";
+        if (!targetDbName.matches("^[a-zA-Z0-9_$-]+$")) {
+            return Map.of("success", false, "dbType", effectiveType, "latencyMs", 0, "message", "Tên CSDL chứa ký tự không hợp lệ!");
+        }
         String targetUser = (username != null) ? username.trim() : "";
         String targetPass = (password != null) ? password : "";
 
@@ -369,7 +422,11 @@ public class SystemSettingService {
         if ("H2".equals(effectiveType)) {
             try {
                 Class.forName("org.h2.Driver");
-                String h2Url = (jdbcUrl != null && jdbcUrl.startsWith("jdbc:h2:")) ? jdbcUrl : "jdbc:h2:mem:librarydb;DB_CLOSE_DELAY=-1";
+                String h2Url = (jdbcUrl != null && !jdbcUrl.isBlank()) ? jdbcUrl.trim() : "jdbc:h2:mem:librarydb;DB_CLOSE_DELAY=-1";
+                String upperH2 = h2Url.toUpperCase();
+                if (!h2Url.startsWith("jdbc:h2:mem:") || upperH2.contains("INIT=") || upperH2.contains("RUNSCRIPT") || upperH2.contains("ALIAS")) {
+                    return Map.of("success", false, "dbType", "H2", "latencyMs", 0, "message", "Chỉ cho phép chuỗi kết nối H2 dạng in-memory an toàn!");
+                }
                 DriverManager.setLoginTimeout(3);
                 try (Connection conn = DriverManager.getConnection(h2Url, targetUser.isEmpty() ? "sa" : targetUser, targetPass)) {
                     DatabaseMetaData meta = conn.getMetaData();
@@ -452,11 +509,11 @@ public class SystemSettingService {
         }
 
         String realJdbcUrl = switch (effectiveType) {
-            case "MYSQL" -> String.format("jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=2500&socketTimeout=2500", resolvedHost, targetPort, targetDbName);
+            case "MYSQL" -> String.format("jdbc:mysql://%s:%d/%s?useSSL=false&allowPublicKeyRetrieval=true&allowLoadLocalInfile=false&autoDeserialize=false&connectTimeout=2500&socketTimeout=2500", resolvedHost, targetPort, targetDbName);
             case "POSTGRESQL" -> String.format("jdbc:postgresql://%s:%d/%s", resolvedHost, targetPort, targetDbName);
             case "SQLSERVER" -> String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=false", resolvedHost, targetPort, targetDbName);
             case "ORACLE" -> String.format("jdbc:oracle:thin:@%s:%d:%s", resolvedHost, targetPort, targetDbName);
-            default -> jdbcUrl;
+            default -> throw new IllegalArgumentException("Unsupported DB type");
         };
 
         DriverManager.setLoginTimeout(3);

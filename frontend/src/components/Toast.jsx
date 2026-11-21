@@ -76,33 +76,33 @@ export default function ToastContainer() {
       case 'success':
         return {
           bg: 'var(--bg-card)',
-          border: '#10b981',
-          accentBg: '#ecfdf5',
-          iconColor: '#059669',
+          border: 'var(--success-border)',
+          accentBg: 'var(--success-bg)',
+          iconColor: 'var(--success-text)',
           Icon: CheckCircle2,
         };
       case 'error':
         return {
           bg: 'var(--bg-card)',
-          border: '#ef4444',
-          accentBg: '#fef2f2',
-          iconColor: '#dc2626',
+          border: 'var(--danger-border)',
+          accentBg: 'var(--danger-bg)',
+          iconColor: 'var(--danger-text)',
           Icon: XCircle,
         };
       case 'warning':
         return {
           bg: 'var(--bg-card)',
-          border: '#f59e0b',
-          accentBg: '#fffbeb',
-          iconColor: '#d97706',
+          border: 'var(--warning-border)',
+          accentBg: 'var(--warning-bg)',
+          iconColor: 'var(--warning-text)',
           Icon: AlertTriangle,
         };
       default:
         return {
           bg: 'var(--bg-card)',
-          border: 'var(--primary)',
+          border: 'var(--primary-border)',
           accentBg: 'var(--primary-light)',
-          iconColor: 'var(--primary)',
+          iconColor: 'var(--primary-text)',
           Icon: Info,
         };
     }
@@ -219,15 +219,15 @@ export default function ToastContainer() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '10px',
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
+                  background: 'var(--danger-bg)',
+                  border: '1px solid var(--danger-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
-                <AlertTriangle size={20} color="#dc2626" />
+                <AlertTriangle size={20} color="var(--danger-text)" />
               </div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>
                 {confirmDialog.title || 'Xác nhận thao tác'}

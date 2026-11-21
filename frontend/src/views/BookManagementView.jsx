@@ -542,9 +542,9 @@ export default function BookManagementView() {
             {formError && (
               <div
                 style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#dc2626',
+                  background: 'var(--danger-bg)',
+                  border: '1px solid var(--danger-border)',
+                  color: 'var(--danger-text)',
                   padding: '10px 14px',
                   borderRadius: '8px',
                   fontSize: '0.85rem',

@@ -12,14 +12,19 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/settings")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class SystemSettingController {
 
     private final SystemSettingService settingService;
     private final com.library.service.AiLibrarianService aiLibrarianService;
 
     @GetMapping
-    public ResponseEntity<SystemSetting> getSettings() {
+    public ResponseEntity<Map<String, Object>> getSettings() {
+        return ResponseEntity.ok(settingService.getPublicSettings());
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SystemSetting> getAdminSettings() {
         return ResponseEntity.ok(settingService.getSettings());
     }
 
@@ -41,16 +46,19 @@ public class SystemSettingController {
     }
 
     @GetMapping("/server-metrics")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getServerMetrics() {
         return ResponseEntity.ok(settingService.getServerHardwareMetrics());
     }
 
     @GetMapping("/test-db")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> testDb() {
         return ResponseEntity.ok(settingService.testDatabaseStatus());
     }
 
     @PostMapping("/test-db")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> testCustomDb(@RequestBody Map<String, String> body) {
         String dbType = body.getOrDefault("dbType", "POSTGRESQL");
         String host = body.getOrDefault("dbHost", "localhost");
@@ -63,6 +71,7 @@ public class SystemSettingController {
     }
 
     @PostMapping("/test-cloudflare")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> testCloudflare(@RequestBody Map<String, String> body) {
         String apiKey = body.getOrDefault("apiKey", "");
         String zoneId = body.getOrDefault("zoneId", "");
@@ -79,6 +88,7 @@ public class SystemSettingController {
     }
 
     @PostMapping("/test-gemini")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> testGemini(@RequestBody Map<String, String> body) {
         String apiKey = body.getOrDefault("apiKey", "");
         String model = body.getOrDefault("model", "gemini-flash-lite-latest");
@@ -87,17 +97,20 @@ public class SystemSettingController {
     }
 
     @GetMapping("/gemini-models")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> listGeminiModels(@RequestParam(required = false) String apiKey) {
         return ResponseEntity.ok(aiLibrarianService.listAvailableGeminiModels(apiKey));
     }
 
     @PostMapping("/gemini-models")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> listGeminiModelsPost(@RequestBody(required = false) Map<String, String> body) {
         String apiKey = body != null ? body.getOrDefault("apiKey", "") : "";
         return ResponseEntity.ok(aiLibrarianService.listAvailableGeminiModels(apiKey));
     }
 
     @PostMapping("/test-oauth")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> testOAuth(@RequestBody Map<String, String> body) {
         String provider = body.getOrDefault("provider", "google");
         String clientId = body.getOrDefault("clientId", "");

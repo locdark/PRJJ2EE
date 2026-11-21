@@ -8,7 +8,7 @@ import {
   Radio, Send, Bell, Home, LogOut, Sun, Moon, Cpu, Wifi, HardDrive, Zap,
   Sliders, Eye, Image as ImageIcon, Menu, X
 } from 'lucide-react';
-import { graphqlQuery, getSystemSettings, updateSystemSettings, getServerMetrics } from '../services/api';
+import { graphqlQuery, getSystemSettings, getAdminSystemSettings, updateSystemSettings, getServerMetrics } from '../services/api';
 import { GET_DASHBOARD_STATS, GET_CATEGORIES, GET_BOOKS } from '../services/graphqlQueries';
 import { showToast } from '../components/Toast';
 
@@ -65,6 +65,8 @@ export default function AdminDashboardView({
   const [popupSaving, setPopupSaving] = useState(false);
   const [popupSaveSuccess, setPopupSaveSuccess] = useState(false);
 
+  const [fullSystemSettings, setFullSystemSettings] = useState(null);
+
   useEffect(() => {
     if (initialSection) {
       setActiveMenu(initialSection);
@@ -78,8 +80,14 @@ export default function AdminDashboardView({
 
   const loadSystemSettingsData = async () => {
     try {
-      const data = await getSystemSettings();
+      let data = null;
+      try {
+        data = await getAdminSystemSettings();
+      } catch {
+        data = await getSystemSettings();
+      }
       if (data) {
+        setFullSystemSettings(data);
         setEnablePopup(data.popupEnabled !== false);
         setEnableBannerButton(data.popupNavButtonEnabled !== false);
         setPopupSettings(prev => ({
@@ -102,8 +110,9 @@ export default function AdminDashboardView({
     setPopupSaving(true);
     setPopupSaveSuccess(false);
     try {
-      const payload = overrideSettings || popupSettings;
-      await updateSystemSettings(payload);
+      const payload = { ...(fullSystemSettings || {}), ...(overrideSettings || popupSettings) };
+      const saved = await updateSystemSettings(payload);
+      if (saved) setFullSystemSettings(saved);
       setPopupSaveSuccess(true);
       showToast('Đã lưu và phát sóng cấu hình bản tin thành công!', 'success');
       setTimeout(() => setPopupSaveSuccess(false), 3500);
@@ -116,19 +125,21 @@ export default function AdminDashboardView({
 
   const handleTogglePopup = async (checked) => {
     setEnablePopup(checked);
-    const updated = { ...popupSettings, popupEnabled: checked };
-    setPopupSettings(updated);
+    const updated = { ...(fullSystemSettings || {}), ...popupSettings, popupEnabled: checked };
+    setPopupSettings({ ...popupSettings, popupEnabled: checked });
     try {
-      await updateSystemSettings(updated);
+      const saved = await updateSystemSettings(updated);
+      if (saved) setFullSystemSettings(saved);
     } catch (e) {}
   };
 
   const handleToggleBannerButton = async (checked) => {
     setEnableBannerButton(checked);
-    const updated = { ...popupSettings, popupNavButtonEnabled: checked };
-    setPopupSettings(updated);
+    const updated = { ...(fullSystemSettings || {}), ...popupSettings, popupNavButtonEnabled: checked };
+    setPopupSettings({ ...popupSettings, popupNavButtonEnabled: checked });
     try {
-      await updateSystemSettings(updated);
+      const saved = await updateSystemSettings(updated);
+      if (saved) setFullSystemSettings(saved);
     } catch (e) {}
   };
 
@@ -1208,10 +1219,10 @@ export default function AdminDashboardView({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: '800', color: themeColors.textMain, margin: '0 0 2px 0' }}>
-                      💳 Lịch Sử Giao Dịch Thanh Toán Gần Đây (VNPay &amp; SePay VietQR)
+                      Lịch Sử Giao Dịch Thanh Toán Gần Đây
                     </h3>
-                    <p style={{ fontSize: '0.725rem', color: themeColors.textMuted, margin: 0 }}>
-                      Dữ liệu đối soát thời gian thực từ cổng thanh toán trực tuyến ({payments.length} giao dịch)
+                    <p style={{ fontSize: '0.74rem', color: themeColors.textMuted, margin: 0 }}>
+                      Đối soát thời gian thực từ VNPay &amp; SePay VietQR • {payments.length} giao dịch
                     </p>
                   </div>
                   <span className="badge badge-success">ĐỐI SOÁT TỰ ĐỘNG</span>
@@ -1249,7 +1260,7 @@ export default function AdminDashboardView({
                             <td>
                               <span className="badge badge-info">{pm.paymentMethod || 'SEPAY_VIETQR'}</span>
                             </td>
-                            <td style={{ fontWeight: '800', color: '#10b981' }}>
+                            <td style={{ fontWeight: '800', color: 'var(--success-text)' }}>
                               {(pm.amount || 0).toLocaleString('vi-VN')} đ
                             </td>
                             <td style={{ fontSize: '0.75rem', color: themeColors.textMuted }}>{pm.paymentDate || 'Hôm nay'}</td>
@@ -1274,10 +1285,10 @@ export default function AdminDashboardView({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
                 <div>
                   <h1 style={{ fontSize: '1.45rem', fontWeight: '900', color: themeColors.textMain, margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    🖥️ Giám Sát Máy Chủ, Hiệu Năng CPU &amp; RAM
+                    <Server size={22} color="var(--primary-text)" /> Giám Sát Máy Chủ, Hiệu Năng CPU &amp; RAM
                   </h1>
                   <p style={{ color: themeColors.textMuted, fontSize: '0.85rem', margin: 0 }}>
-                    Theo dõi trực tiếp phần cứng VPS (CPU, RAM, NVMe SSD), Spring Boot 3.3.4, HikariCP Pool và Latency CSDL theo thời gian thực.
+                    Theo dõi trực tiếp tài nguyên VPS: CPU, RAM, NVMe SSD, Spring Boot, HikariCP Pool và độ trễ CSDL.
                   </p>
                 </div>
 
@@ -1288,14 +1299,14 @@ export default function AdminDashboardView({
                     gap: '6px',
                     padding: '6px 14px',
                     borderRadius: '20px',
-                    background: '#ecfdf5',
-                    color: '#059669',
+                    background: 'var(--success-bg)',
+                    color: 'var(--success-text)',
                     fontSize: '0.78rem',
                     fontWeight: '800',
-                    border: '1px solid #a7f3d0'
+                    border: '1px solid var(--success-border)'
                   }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                    REAL-TIME (3s/lần)
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success-text)', display: 'inline-block' }} />
+                    CẬP NHẬT MỖI 3 GIÂY
                   </div>
 
                   <button
@@ -1316,8 +1327,8 @@ export default function AdminDashboardView({
                 {/* 1. CPU LOAD */}
                 {(() => {
                   const cpuUsage = serverMetrics?.cpu?.usagePercent || 14;
-                  const cpuColor = cpuUsage > 80 ? '#ef4444' : cpuUsage > 60 ? '#f59e0b' : '#10b981';
-                  const cpuBg = cpuUsage > 80 ? '#fef2f2' : cpuUsage > 60 ? '#fffbeb' : '#ecfdf5';
+                  const cpuColor = cpuUsage > 80 ? 'var(--danger-text)' : cpuUsage > 60 ? 'var(--warning-text)' : 'var(--success-text)';
+                  const cpuBg = cpuUsage > 80 ? 'var(--danger-bg)' : cpuUsage > 60 ? 'var(--warning-bg)' : 'var(--success-bg)';
                   return (
                     <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '20px', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -1360,8 +1371,8 @@ export default function AdminDashboardView({
                   const totalMb = serverMetrics?.ram?.totalMb || 6000;
                   const freeMb = serverMetrics?.ram?.freeMb || (totalMb - usedMb);
                   const ramUsage = serverMetrics?.ram?.usagePercent || Math.round((usedMb * 100) / totalMb);
-                  const ramColor = ramUsage > 85 ? '#ef4444' : ramUsage > 70 ? '#f59e0b' : '#3b82f6';
-                  const ramBg = ramUsage > 85 ? '#fef2f2' : ramUsage > 70 ? '#fffbeb' : '#eff6ff';
+                  const ramColor = ramUsage > 85 ? 'var(--danger-text)' : ramUsage > 70 ? 'var(--warning-text)' : 'var(--primary-text)';
+                  const ramBg = ramUsage > 85 ? 'var(--danger-bg)' : ramUsage > 70 ? 'var(--warning-bg)' : 'var(--info-bg)';
 
                   const usedGb = (usedMb / 1024).toFixed(1);
                   const totalGb = (totalMb / 1024).toFixed(1);
@@ -1409,8 +1420,8 @@ export default function AdminDashboardView({
                   const totalGb = serverMetrics?.disk?.totalGb || 50;
                   const freeGb = serverMetrics?.disk?.freeGb || (totalGb - usedGb);
                   const diskUsage = serverMetrics?.disk?.usagePercent || Math.round((usedGb * 100) / totalGb);
-                  const diskColor = diskUsage > 85 ? '#ef4444' : '#8b5cf6';
-                  const diskBg = diskUsage > 85 ? '#fef2f2' : '#f5f3ff';
+                  const diskColor = diskUsage > 85 ? 'var(--danger-text)' : 'var(--primary-text)';
+                  const diskBg = diskUsage > 85 ? 'var(--danger-bg)' : 'var(--primary-light)';
 
                   return (
                     <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '20px', position: 'relative', overflow: 'hidden' }}>
@@ -1456,31 +1467,31 @@ export default function AdminDashboardView({
                 {/* 4. SPRING BOOT & JVM */}
                 <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <Server color="#10b981" size={20} />
+                    <Server color="var(--success-text)" size={20} />
                     <span style={{ fontSize: '0.85rem', fontWeight: '800', color: themeColors.textMain }}>Spring Boot 3.3.4 &amp; Java 21</span>
                   </div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#10b981' }}>ONLINE :8080</div>
-                  <div style={{ fontSize: '0.75rem', color: themeColors.textMuted, marginTop: '6px' }}>JVM 21 Eclipse Temurin • Hot-reload Active</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--success-text)' }}>ONLINE :8080</div>
+                  <div style={{ fontSize: '0.75rem', color: themeColors.textMuted, marginTop: '6px' }}>JVM 21 Eclipse Temurin • Trực tuyến</div>
                 </div>
 
                 {/* 5. HIKARICP POOL */}
                 <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <Database color="#3b82f6" size={20} />
+                    <Database color="var(--primary-text)" size={20} />
                     <span style={{ fontSize: '0.85rem', fontWeight: '800', color: themeColors.textMain }}>HikariCP Connection Pool</span>
                   </div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#3b82f6' }}>10 Max / 5 Idle</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--primary-text)' }}>10 Max / 5 Idle</div>
                   <div style={{ fontSize: '0.75rem', color: themeColors.textMuted, marginTop: '6px' }}>Connection Timeout: 30000ms • Active: 2</div>
                 </div>
 
                 {/* 6. PING LATENCY */}
                 <div style={{ backgroundColor: themeColors.bgCard, border: `1px solid ${themeColors.border}`, borderRadius: '12px', padding: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <Wifi color="#06b6d4" size={20} />
-                    <span style={{ fontSize: '0.85rem', fontWeight: '800', color: themeColors.textMain }}>Độ Trễ Phản Hồi (Ping)</span>
+                    <Wifi color="var(--info-text)" size={20} />
+                    <span style={{ fontSize: '0.85rem', fontWeight: '800', color: themeColors.textMain }}>Độ trễ phản hồi API</span>
                   </div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#06b6d4' }}>12 ms</div>
-                  <div style={{ fontSize: '0.75rem', color: themeColors.textMuted, marginTop: '6px' }}>GraphQL Endpoint: /graphql • Tốc độ tối ưu</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--info-text)' }}>12 ms</div>
+                  <div style={{ fontSize: '0.75rem', color: themeColors.textMuted, marginTop: '6px' }}>GraphQL Endpoint: /graphql • Ổn định</div>
                 </div>
 
               </div>

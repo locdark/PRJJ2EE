@@ -624,8 +624,8 @@ export default function CatalogView({
               style={{ fontSize: '0.785rem', padding: '7px 9px' }}
             >
               <option value="all">Tất cả tình trạng</option>
-              <option value="available">🟢 Còn sách trên kệ (Mượn ngay)</option>
-              <option value="out_of_stock">🔴 Đang cho mượn hết</option>
+              <option value="available">Còn sách trên kệ</option>
+              <option value="out_of_stock">Đang cho mượn hết</option>
             </select>
           </div>
 
@@ -655,9 +655,9 @@ export default function CatalogView({
               style={{ fontSize: '0.785rem', padding: '7px 9px' }}
             >
               <option value="all">Tất cả năm phát hành</option>
-              <option value="2024-2026">2024 - 2026 (Mới cập nhật)</option>
-              <option value="2020-2023">2020 - 2023 (Giáo trình chuẩn)</option>
-              <option value="before-2020">Trước 2020 (Tài liệu tham khảo)</option>
+              <option value="2024-2026">2024 – 2026 • Mới cập nhật</option>
+              <option value="2020-2023">2020 – 2023 • Giáo trình chuẩn</option>
+              <option value="before-2020">Trước 2020 • Tài liệu tham khảo</option>
             </select>
           </div>
 
@@ -722,9 +722,9 @@ export default function CatalogView({
               style={{ fontSize: '0.785rem', padding: '7px 9px' }}
             >
               <option value="all">Tất cả đánh giá</option>
-              <option value="5.0">⭐⭐⭐⭐⭐ 5.0 sao (Tuyệt đối)</option>
-              <option value="4.5">⭐⭐⭐⭐ 4.5 sao trở lên</option>
-              <option value="4.0">⭐⭐⭐ 4.0 sao trở lên</option>
+              <option value="5.0">Từ 5.0 sao</option>
+              <option value="4.5">Từ 4.5 sao trở lên</option>
+              <option value="4.0">Từ 4.0 sao trở lên</option>
             </select>
           </div>
 
@@ -774,7 +774,7 @@ export default function CatalogView({
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Nhập từ khóa hoặc nhấn Mic để tìm bằng giọng nói (Tên sách, Tác giả, ISBN...)"
+                  placeholder="Nhập từ khóa hoặc nhấn Mic để tìm bằng giọng nói: tên sách, tác giả, ISBN..."
                   value={keyword}
                   onChange={(e) => {
                     setKeyword(e.target.value);
@@ -815,9 +815,9 @@ export default function CatalogView({
                     position: 'absolute',
                     top: '6px',
                     right: '8px',
-                    background: isListening ? 'rgba(220, 38, 38, 0.12)' : 'var(--bg-elevated)',
+                    background: isListening ? 'var(--danger-bg)' : 'var(--bg-elevated)',
                     border: '1px solid var(--border)',
-                    color: isListening ? '#dc2626' : 'var(--primary)',
+                    color: isListening ? 'var(--danger-text)' : 'var(--primary-text)',
                     cursor: 'pointer',
                     width: '26px',
                     height: '26px',
@@ -826,7 +826,7 @@ export default function CatalogView({
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
-                  title="Tìm kiếm bằng giọng nói Tiếng Việt (Voice Search)"
+                  title="Tìm kiếm bằng giọng nói Tiếng Việt"
                   aria-label="Tìm kiếm bằng giọng nói"
                 >
                   {isListening ? <MicOff size={14} /> : <Mic size={14} />}
@@ -841,9 +841,9 @@ export default function CatalogView({
                   setCurrentPage(1);
                 }}
                 style={{
-                  background: savedOnly ? '#e11d48' : '#fff1f2',
-                  color: savedOnly ? '#ffffff' : '#e11d48',
-                  border: '1px solid #fecdd3',
+                  background: savedOnly ? 'var(--wishlist-text)' : 'var(--wishlist-bg)',
+                  color: savedOnly ? 'var(--wishlist-bg)' : 'var(--wishlist-text)',
+                  border: '1px solid var(--wishlist-border)',
                   padding: '8px 13px',
                   borderRadius: '8px',
                   fontSize: '0.785rem',
@@ -855,13 +855,23 @@ export default function CatalogView({
                   whiteSpace: 'nowrap',
                   transition: 'all 0.15s ease',
                 }}
-                title="Lọc nhanh các tài liệu trong Tủ sách Đọc sau / Yêu thích"
+                title="Lọc nhanh các tài liệu trong Tủ sách Đọc sau & Yêu thích"
               >
                 <Heart
                   size={14}
                   fill={savedOnly || wishlistIds.length > 0 ? 'currentColor' : 'none'}
                 />
-                <span>Đã lưu ({wishlistIds.length})</span>
+                <span>Đã lưu</span>
+                <span
+                  className="pill-count"
+                  style={
+                    savedOnly
+                      ? { background: 'rgba(255,255,255,0.22)', color: 'var(--wishlist-bg)' }
+                      : { background: 'var(--bg-card)', color: 'var(--wishlist-text)' }
+                  }
+                >
+                  {wishlistIds.length}
+                </span>
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -872,13 +882,13 @@ export default function CatalogView({
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="input-field"
-                  style={{ width: '160px', padding: '8px 10px', fontSize: '0.8rem' }}
+                  style={{ width: '165px', padding: '8px 10px', fontSize: '0.8rem' }}
                 >
                   <option value="rating_desc">Đánh giá cao nhất</option>
                   <option value="newest">Năm XB mới nhất</option>
-                  <option value="title_asc">Nhan đề (A → Z)</option>
-                  <option value="price_asc">Giá cọc (Thấp → Cao)</option>
-                  <option value="price_desc">Giá cọc (Cao → Thấp)</option>
+                  <option value="title_asc">Nhan đề A–Z</option>
+                  <option value="price_asc">Phí thấp đến cao</option>
+                  <option value="price_desc">Phí cao đến thấp</option>
                 </select>
               </div>
             </div>
@@ -907,10 +917,10 @@ export default function CatalogView({
                 {savedOnly && (
                   <span
                     className="badge badge-danger"
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                     onClick={() => setSavedOnly(false)}
                   >
-                    ❤️ Tủ sách Đọc sau ({wishlistIds.length}) <X size={11} style={{ marginLeft: '4px' }} />
+                    <Heart size={11} /> Tủ sách Đọc sau <span className="pill-count">{wishlistIds.length}</span> <X size={11} />
                   </span>
                 )}
 
@@ -971,10 +981,10 @@ export default function CatalogView({
                 {ratingFilter !== 'all' && (
                   <span
                     className="badge badge-warning"
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     onClick={() => setRatingFilter('all')}
                   >
-                    ≥ {ratingFilter} ⭐ <X size={11} style={{ marginLeft: '4px' }} />
+                    ≥ {ratingFilter} <Star size={11} fill="currentColor" /> <X size={11} />
                   </span>
                 )}
 
@@ -1132,10 +1142,10 @@ export default function CatalogView({
                           height: '28px',
                           borderRadius: '50%',
                           background: wishlistIds.includes(String(book.id))
-                            ? '#fff1f2'
-                            : 'rgba(255, 255, 255, 0.92)',
+                            ? 'var(--wishlist-bg)'
+                            : 'var(--bg-card)',
                           border: wishlistIds.includes(String(book.id))
-                            ? '1px solid #fecdd3'
+                            ? '1px solid var(--wishlist-border)'
                             : '1px solid var(--border)',
                           display: 'flex',
                           alignItems: 'center',
@@ -1147,8 +1157,8 @@ export default function CatalogView({
                       >
                         <Heart
                           size={14}
-                          fill={wishlistIds.includes(String(book.id)) ? '#e11d48' : 'none'}
-                          color={wishlistIds.includes(String(book.id)) ? '#e11d48' : '#64748b'}
+                          fill={wishlistIds.includes(String(book.id)) ? 'var(--wishlist-text)' : 'none'}
+                          color={wishlistIds.includes(String(book.id)) ? 'var(--wishlist-text)' : 'var(--text-muted)'}
                         />
                       </button>
                     )}
@@ -1159,7 +1169,7 @@ export default function CatalogView({
                         position: 'absolute',
                         top: '8px',
                         right: '8px',
-                        background: 'var(--bg-card)',
+                        background: 'var(--rating-bg)',
                         padding: '2px 7px',
                         borderRadius: '5px',
                         display: 'flex',
@@ -1167,12 +1177,12 @@ export default function CatalogView({
                         gap: '3px',
                         fontSize: '0.725rem',
                         fontWeight: '800',
-                        color: '#d97706',
+                        color: 'var(--rating-text)',
                         boxShadow: 'var(--shadow-sm)',
-                        border: '1px solid #fde68a',
+                        border: '1px solid var(--rating-border)',
                       }}
                     >
-                      <Star size={11} fill="#f59e0b" color="#f59e0b" /> {book.rating || 5.0}
+                      <Star size={11} fill="var(--rating-star)" color="var(--rating-star)" /> {book.rating || 5.0}
                     </div>
 
                     {/* Stock Status Badge */}

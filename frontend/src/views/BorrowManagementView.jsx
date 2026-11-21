@@ -429,8 +429,8 @@ export default function BorrowManagementView() {
                     if (e.target.checked) setIsLost(false);
                   }}
                 />
-                <span style={{ color: '#d97706', fontWeight: '700' }}>
-                  Sách bị rách / hư hỏng (Phạt 50% giá bìa)
+                <span style={{ color: 'var(--warning-text)', fontWeight: '700' }}>
+                  Sách bị rách hoặc hư hỏng — Phạt 50% giá bìa
                 </span>
               </label>
 

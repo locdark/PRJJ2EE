@@ -52,11 +52,11 @@ const THEME_LIST = [
 ];
 
 const THEME_LABELS = {
-  'emerald-scholar': 'Emerald Scholar (Học thuật Xanh)',
-  'oxford-navy': 'Oxford Navy (Xanh Hải Quân & Vàng)',
-  'modern-dark': 'Modern Dark (Tối Hiện Đại)',
-  'academic-light': 'Academic Light (Sáng Tiêu Chuẩn)',
-  'orange-white': 'Orange White (Trắng Cam Ấm)',
+  'emerald-scholar': 'Ngọc bích Học thuật',
+  'oxford-navy': 'Oxford Hải quân',
+  'modern-dark': 'Tối Hiện đại',
+  'academic-light': 'Sáng Học thuật',
+  'orange-white': 'Cam Trắng Ấm',
 };
 
 const VALID_VIEWS = [
@@ -253,31 +253,8 @@ export default function App() {
       setAuthModalOpen(true);
     }
 
-    // 2. Xử lý OAuth 2.0 Redirect Callback (Google / Facebook) hoặc đồng bộ cross-domain (.nip.io -> IP)
-    if (window.location.hash.includes('oauth_sync=')) {
-      try {
-        const syncParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, ''));
-        const encoded = syncParams.get('oauth_sync');
-        if (encoded) {
-          const authData = JSON.parse(decodeURIComponent(encoded));
-          if (authData && authData.token) {
-            const userObj = authData.user || {
-              id: authData.id,
-              email: authData.email,
-              fullName: authData.fullName,
-              role: authData.role,
-              avatar: authData.avatar,
-            };
-            localStorage.setItem('library_token', authData.token);
-            localStorage.setItem('library_user', JSON.stringify(userObj));
-            handleAuthSuccess(userObj);
-          }
-        }
-        window.history.replaceState({}, document.title, '/');
-      } catch (e) {
-        console.error('OAuth sync error:', e);
-      }
-    } else if (
+    // 2. Xử lý OAuth 2.0 Redirect Callback
+    if (
       window.location.hash.includes('access_token=') ||
       window.location.hash.includes('id_token=') ||
       window.location.search.includes('code=') ||
@@ -318,19 +295,6 @@ export default function App() {
         };
         localStorage.setItem('library_token', authData.token);
         localStorage.setItem('library_user', JSON.stringify(userObj));
-
-        // Nếu người dùng bắt đầu từ IP gốc (ví dụ http://160.191.244.153:8088) và Google redirect sang .nip.io,
-        // chuyển hướng ngược về origin gốc kèm dữ liệu phiên để lưu localStorage đúng tên miền đang dùng
-        if (
-          state &&
-          state.startsWith('http') &&
-          state !== window.location.origin
-        ) {
-          window.location.href = `${state}/#oauth_sync=${encodeURIComponent(
-            JSON.stringify({ ...authData, user: userObj })
-          )}`;
-          return true;
-        }
 
         handleAuthSuccess(userObj);
         return false;
@@ -740,7 +704,7 @@ export default function App() {
                     top: '-6px',
                     right: '-10px',
                     background: 'var(--primary)',
-                    color: '#ffffff',
+                    color: 'var(--on-primary)',
                     fontSize: '0.6rem',
                     fontWeight: '800',
                     padding: '0 4px',
@@ -764,8 +728,8 @@ export default function App() {
             onClick={() => setAiModalOpen((prev) => !prev)}
             className={`mobile-bottom-nav-item ${aiModalOpen ? 'active' : ''}`}
           >
-            <Sparkles size={19} color="#0284c7" />
-            <span>AI Tư vấn</span>
+            <Sparkles size={19} color="var(--primary-text)" />
+            <span>Trợ lý AI</span>
           </button>
         </nav>
       )}

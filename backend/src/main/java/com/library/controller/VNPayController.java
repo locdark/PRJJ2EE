@@ -8,16 +8,15 @@ import com.library.service.AuthService;
 import com.library.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vnpay")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class VNPayController {
 
     private final PaymentService paymentService;
@@ -29,8 +28,11 @@ public class VNPayController {
             @RequestParam Double amount,
             HttpServletRequest request
     ) {
-        String ipAddress = VNPayConfig.getIpAddress(request);
         User user = authService.getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String ipAddress = VNPayConfig.getIpAddress(request);
         return ResponseEntity.ok(paymentService.createVNPayPaymentUrl(recordId, amount, ipAddress, user));
     }
 

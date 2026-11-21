@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
@@ -24,6 +25,10 @@ public class BorrowGraphQLController {
     private final BorrowService borrowService;
     private final AuthService authService;
     private final UserRepository userRepository;
+
+    private boolean isStaff(User user) {
+        return user != null && (user.getRole() == Role.ROLE_ADMIN || user.getRole() == Role.ROLE_LIBRARIAN);
+    }
 
     @QueryMapping
     public List<BorrowRecord> myBorrowRecords() {
@@ -45,7 +50,15 @@ public class BorrowGraphQLController {
 
     @QueryMapping
     public BorrowRecord borrowRecordById(@Argument Long id) {
-        return borrowService.getBorrowRecordById(id);
+        User user = authService.getCurrentUser();
+        if (user == null) {
+            throw new AccessDeniedException("Vui lòng đăng nhập để xem thông tin phiếu mượn!");
+        }
+        BorrowRecord record = borrowService.getBorrowRecordById(id);
+        if (!isStaff(user) && (record.getUser() == null || !record.getUser().getId().equals(user.getId()))) {
+            throw new AccessDeniedException("Bạn không có quyền xem phiếu mượn này!");
+        }
+        return record;
     }
 
     @QueryMapping
@@ -64,7 +77,8 @@ public class BorrowGraphQLController {
         if (user == null) {
             throw new RuntimeException("Vui lòng đăng nhập tài khoản độc giả để mượn sách!");
         }
-        return borrowService.requestBorrow(user, bookId, days != null ? days : 14, note);
+        int safeDays = (days != null) ? Math.max(1, Math.min(90, days)) : 14;
+        return borrowService.requestBorrow(user, bookId, safeDays, note);
     }
 
     @MutationMapping
@@ -90,16 +104,25 @@ public class BorrowGraphQLController {
     ) {
         User user = authService.getCurrentUser();
         if (user == null) {
-            throw new RuntimeException("Vui lòng đăng nhập để gia hạn sách!");
+            throw new AccessDeniedException("Vui lòng đăng nhập để gia hạn sách!");
         }
-        return borrowService.renewBorrow(recordId, extraDays != null ? extraDays : 7);
+        BorrowRecord existing = borrowService.getBorrowRecordById(recordId);
+        if (!isStaff(user) && (existing.getUser() == null || !existing.getUser().getId().equals(user.getId()))) {
+            throw new AccessDeniedException("Bạn không có quyền gia hạn phiếu mượn của người khác!");
+        }
+        int safeExtraDays = (extraDays != null) ? Math.max(1, Math.min(14, extraDays)) : 7;
+        return borrowService.renewBorrow(recordId, safeExtraDays);
     }
 
     @MutationMapping
     public BorrowRecord cancelBorrow(@Argument Long recordId) {
         User user = authService.getCurrentUser();
         if (user == null) {
-            throw new RuntimeException("Vui lòng đăng nhập để hủy yêu cầu mượn sách!");
+            throw new AccessDeniedException("Vui lòng đăng nhập để hủy yêu cầu mượn sách!");
+        }
+        BorrowRecord existing = borrowService.getBorrowRecordById(recordId);
+        if (!isStaff(user) && (existing.getUser() == null || !existing.getUser().getId().equals(user.getId()))) {
+            throw new AccessDeniedException("Bạn không có quyền hủy phiếu mượn của người khác!");
         }
         return borrowService.cancelBorrow(recordId);
     }

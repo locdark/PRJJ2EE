@@ -4,7 +4,7 @@ import {
   CheckCircle2, AlertCircle, RefreshCw, Server, Shield, Sparkles, 
   QrCode, ExternalLink, HardDrive, Key, Sliders, Check, Eye, EyeOff, Bot, Zap, Copy
 } from 'lucide-react';
-import { getSystemSettings, updateSystemSettings, testDatabase, testCloudflare, testGeminiApi, listGeminiModels, testOAuth } from '../services/api';
+import { getSystemSettings, getAdminSystemSettings, updateSystemSettings, testDatabase, testCloudflare, testGeminiApi, listGeminiModels, testOAuth } from '../services/api';
 import { showToast } from '../components/Toast';
 
 export default function AdminSettingsView({ 
@@ -120,7 +120,12 @@ export default function AdminSettingsView({
   const loadSettings = async () => {
     setLoading(true);
     try {
-      const data = await getSystemSettings();
+      let data = null;
+      try {
+        data = await getAdminSystemSettings();
+      } catch {
+        data = await getSystemSettings();
+      }
       if (data) {
         const cleaned = { ...data };
         if (cleaned.googleClientId === '109827364521-smartlibrary.apps.googleusercontent.com') {
@@ -405,42 +410,42 @@ export default function AdminSettingsView({
   const themes = [
     {
       id: 'orange-white',
-      name: 'Thư Viện Cổ Điển (Cam - Trắng)',
-      subtitle: 'Phong cách GitBook & Academic Warmth • Sắc cam ấm áp & Nền thanh thoát',
-      color: '#d97706',
-      secondary: '#f59e0b',
-      bg: '#fffdfa'
+      name: 'Cam Trắng Ấm',
+      subtitle: 'Sắc cam ấm áp & Nền sáng thanh thoát',
+      color: '#c2410c',
+      secondary: '#ea580c',
+      bg: '#fffbeb'
     },
     {
       id: 'modern-dark',
-      name: 'Cyber Dark Library',
-      subtitle: 'Mặc định • Slate 900, Viền Neon & Tối Sang Trọng',
-      color: '#4f46e5',
-      secondary: '#06b6d4',
-      bg: '#0f172a'
+      name: 'Tối Hiện Đại',
+      subtitle: 'Slate 900, Độ tương phản cao & Dịu mắt ban đêm',
+      color: '#2563eb',
+      secondary: '#38bdf8',
+      bg: '#0b1120'
     },
     {
       id: 'oxford-navy',
-      name: 'Oxford Academic Navy',
-      subtitle: 'Đại học Hoàng Gia • Deep Navy & Vàng Kim Hoàng Tộc',
+      name: 'Oxford Hải Quân',
+      subtitle: 'Deep Navy & Sắc xanh hoàng gia',
       color: '#2563eb',
-      secondary: '#d4af37',
+      secondary: '#fbbf24',
       bg: '#0a1128'
     },
     {
       id: 'emerald-scholar',
-      name: 'Emerald Scholar',
-      subtitle: 'Viện Hàn Lâm Khoa Học • Xanh Lục Bảo & Cổ Điển',
-      color: '#059669',
-      secondary: '#10b981',
-      bg: '#04241e'
+      name: 'Ngọc Bích Học Thuật',
+      subtitle: 'Viện Hàn Lâm Khoa Học • Sắc xanh lục bảo',
+      color: '#047857',
+      secondary: '#059669',
+      bg: '#f4fbf8'
     },
     {
       id: 'academic-light',
-      name: 'Academic Modern Light',
-      subtitle: 'Thư Viện Sáng • Nền Canvas Trắng Thanh Lịch & Chữ Đậm',
-      color: '#4338ca',
-      secondary: '#0284c7',
+      name: 'Sáng Học Thuật',
+      subtitle: 'Nền trắng thanh lịch & Chữ đậm chuẩn WCAG AA',
+      color: '#1d4ed8',
+      secondary: '#0369a1',
       bg: '#f8fafc'
     }
   ];
@@ -644,16 +649,16 @@ export default function AdminSettingsView({
                   name="maxBorrowLimit" 
                   value={form.maxBorrowLimit || 3} 
                   onChange={handleChange} 
-                  style={{ background: '#ffffff', fontWeight: '800', fontSize: '1rem', color: '#1d4ed8' }}
+                  style={{ background: 'var(--bg-card)', fontWeight: '800', fontSize: '1rem', color: 'var(--primary-text)' }}
                 />
-                <span style={{ fontSize: '0.725rem', color: '#3b82f6', marginTop: '6px', display: 'block' }}>
+                <span style={{ fontSize: '0.725rem', color: 'var(--primary-text)', marginTop: '6px', display: 'block' }}>
                   Mặc định: 3 cuốn. Độc giả đạt tới số lượng này sẽ bị chặn mượn thêm cho đến khi trả sách.
                 </span>
               </div>
 
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
-                  Thời Hạn Mượn Sách Mặc Định (Ngày)
+                  Thời Hạn Mượn Sách Mặc Định • Số ngày
                 </label>
                 <input 
                   type="number" 
@@ -671,7 +676,7 @@ export default function AdminSettingsView({
 
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
-                  Phí Phạt Quá Hạn (VNĐ / Ngày)
+                  Phí Phạt Quá Hạn • VNĐ mỗi ngày
                 </label>
                 <input 
                   type="number" 
@@ -689,11 +694,11 @@ export default function AdminSettingsView({
             </div>
           </div>
 
-          {/* BỘ CÔNG THƯƠNG (MOIT) VERIFICATION TOGGLE */}
+          {/* MOIT VERIFICATION TOGGLE */}
           <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
             <div style={{ 
-              background: form.moitVerificationEnabled !== false ? '#eff6ff' : '#f8fafc', 
-              border: form.moitVerificationEnabled !== false ? '1px solid #bfdbfe' : '1px solid #e2e8f0', 
+              background: form.moitVerificationEnabled !== false ? 'var(--info-bg)' : 'var(--bg-elevated)', 
+              border: form.moitVerificationEnabled !== false ? '1px solid var(--info-border)' : '1px solid var(--border)', 
               padding: '16px 20px', 
               borderRadius: '12px', 
               display: 'flex', 
@@ -747,18 +752,18 @@ export default function AdminSettingsView({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Main Gemini Credentials Card */}
-          <div className="glass-panel" style={{ padding: '32px', borderRadius: '20px', borderLeft: '4px solid #1d4ed8', background: '#ffffff' }}>
+          <div className="glass-panel" style={{ padding: '32px', borderRadius: '20px', borderLeft: '4px solid var(--primary)', background: 'var(--bg-card)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)', padding: '10px', borderRadius: '12px', color: 'white' }}>
+                <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '12px', color: 'var(--on-primary)' }}>
                   <Sparkles size={24} />
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', margin: '0 0 4px' }}>
+                  <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 4px' }}>
                     Cấu Hình Trí Tuệ Nhân Tạo Google Gemini AI
                   </h2>
-                  <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
-                    Kích hoạt mô hình ngôn ngữ lớn (LLM) để trả lời câu hỏi tự nhiên và tư vấn sách trong kho 100 giáo trình
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
+                    Kích hoạt mô hình ngôn ngữ lớn để trả lời câu hỏi tự nhiên và tư vấn sách trong kho giáo trình
                   </p>
                 </div>
               </div>
@@ -772,7 +777,7 @@ export default function AdminSettingsView({
                   target="_blank" 
                   rel="noreferrer" 
                   className="btn btn-outline"
-                  style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#1d4ed8', borderColor: '#bfdbfe', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ fontSize: '0.8rem', padding: '6px 12px', color: 'var(--primary-text)', borderColor: 'var(--primary-border, var(--border))', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   Lấy Key Miễn Phí <ExternalLink size={13} />
                 </a>
@@ -940,36 +945,33 @@ export default function AdminSettingsView({
                   value={geminiTestPrompt}
                   onChange={(e) => setGeminiTestPrompt(e.target.value)}
                   placeholder="Nhập câu hỏi bất kỳ của khách hàng để kiểm tra độ thông minh của Model..."
-                  style={{ flex: 1, minWidth: '240px', background: '#ffffff' }}
+                  style={{ flex: 1, minWidth: '240px', background: 'var(--bg-card)' }}
                 />
                 <button 
                   type="button"
                   onClick={handleTestGemini} 
                   disabled={testingGemini || !form.geminiApiKey}
-                  className="btn btn-outline"
+                  className="btn btn-primary"
                   style={{ 
-                    borderColor: '#1d4ed8', 
-                    color: '#ffffff', 
                     padding: '10px 18px', 
                     fontSize: '0.85rem',
                     fontWeight: '800',
-                    background: '#1d4ed8',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px'
                   }}
                 >
                   {testingGemini ? <RefreshCw className="animate-spin" size={16} /> : <Zap size={16} />}
-                  {testingGemini ? 'Đang chạy Model...' : `⚡ Test Key & Model (${form.geminiModel || 'gemini-flash-lite-latest'})`}
+                  {testingGemini ? 'Đang chạy Model...' : `Kiểm tra ${form.geminiModel || 'gemini-flash-lite-latest'}`}
                 </button>
               </div>
             </div>
 
             {/* Action & Save Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '20px', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: '600' }}>
-                  Model đang chọn: <strong style={{ color: '#1d4ed8' }}>{form.geminiModel || 'gemini-flash-lite-latest'}</strong>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                  Model đang chọn: <strong style={{ color: 'var(--primary-text)' }}>{form.geminiModel || 'gemini-flash-lite-latest'}</strong>
                 </span>
               </div>
 
@@ -992,19 +994,19 @@ export default function AdminSettingsView({
                   marginTop: '20px', 
                   padding: '16px 20px', 
                   borderRadius: '12px', 
-                  background: geminiStatus.success ? '#ecfdf5' : '#fef2f2',
-                  border: `1px solid ${geminiStatus.success ? '#a7f3d0' : '#fecaca'}`,
-                  color: geminiStatus.success ? '#065f46' : '#991b1b',
+                  background: geminiStatus.success ? 'var(--success-bg)' : 'var(--danger-bg)',
+                  border: `1px solid ${geminiStatus.success ? 'var(--success-border)' : 'var(--danger-border)'}`,
+                  color: geminiStatus.success ? 'var(--success-text)' : 'var(--danger-text)',
                   fontSize: '0.85rem'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', marginBottom: '6px' }}>
-                  {geminiStatus.success ? <CheckCircle2 size={18} color="#059669" /> : <AlertCircle size={18} color="#dc2626" />}
+                  {geminiStatus.success ? <CheckCircle2 size={18} color="var(--success-text)" /> : <AlertCircle size={18} color="var(--danger-text)" />}
                   <span>{geminiStatus.message}</span>
                 </div>
 
                 {geminiStatus.success && (
-                  <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#047857' }}>
+                  <div style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--success-text)' }}>
                     <div style={{ display: 'flex', gap: '20px', marginBottom: '8px', flexWrap: 'wrap' }}>
                       <div>Mô hình thực thi: <strong>{geminiStatus.model}</strong></div>
                       <div>Độ trễ phản hồi: <strong>{geminiStatus.latencyMs} ms</strong></div>
@@ -1013,9 +1015,9 @@ export default function AdminSettingsView({
                       style={{
                         padding: '12px 14px',
                         borderRadius: '8px',
-                        background: '#ffffff',
-                        border: '1px solid #a7f3d0',
-                        color: '#064e3b',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--success-border)',
+                        color: 'var(--text-main)',
                         whiteSpace: 'pre-wrap',
                         lineHeight: 1.6,
                       }}
@@ -1701,20 +1703,20 @@ export default function AdminSettingsView({
                 {/* Right Column: Live VietQR Card Preview */}
                 <div
                   style={{
-                    background: '#ffffff',
-                    border: '1px solid #cbd5e1',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
                     borderRadius: '16px',
                     padding: '20px',
                     textAlign: 'center',
-                    boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08)',
-                    color: '#0f172a',
+                    boxShadow: 'var(--shadow-md)',
+                    color: 'var(--text-main)',
                   }}
                 >
                   <div
                     style={{
                       fontSize: '0.72rem',
                       fontWeight: '800',
-                      color: '#0891b2',
+                      color: 'var(--primary-text)',
                       letterSpacing: '0.04em',
                       marginBottom: '6px',
                     }}
@@ -1727,10 +1729,10 @@ export default function AdminSettingsView({
 
                   <div
                     style={{
-                      background: '#f8fafc',
+                      background: '#ffffff', /* qr-quiet-zone */
                       padding: '12px',
                       borderRadius: '12px',
-                      border: '1px dashed #cbd5e1',
+                      border: '1px dashed var(--border)',
                       display: 'inline-block',
                       marginBottom: '12px',
                     }}
@@ -1757,7 +1759,7 @@ export default function AdminSettingsView({
                   <div
                     style={{
                       textAlign: 'left',
-                      background: '#f1f5f9',
+                      background: 'var(--bg-elevated)',
                       borderRadius: '10px',
                       padding: '10px 12px',
                       fontSize: '0.78rem',
@@ -1767,7 +1769,7 @@ export default function AdminSettingsView({
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Chủ TK:</span>
+                      <span style={{ color: 'var(--text-muted)' }}>Chủ TK:</span>
                       <strong>{form.sepayAccountName || 'TRUNG TAM THU VIEN'}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1975,7 +1977,7 @@ export default function AdminSettingsView({
 
           <div className="glass-panel" style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '12px' }}>
             <div>
-              <div style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '0.9rem' }}>Bật Cloudflare Orange Cloud (DNS Proxy & Cache)</div>
+              <div style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '0.9rem' }}>Bật Cloudflare Orange Cloud Proxy &amp; Cache</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Tự động lưu đệm ảnh bìa sách và định tuyến qua mạng Anycast toàn cầu</div>
             </div>
             <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
@@ -1995,18 +1997,18 @@ export default function AdminSettingsView({
       {activeTab === 'database' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          <div className="glass-panel" style={{ padding: '32px', borderRadius: '20px', borderLeft: '4px solid #3b82f6' }}>
+          <div className="glass-panel" style={{ padding: '32px', borderRadius: '20px', borderLeft: '4px solid var(--primary)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ background: '#3b82f6', padding: '12px', borderRadius: '12px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'var(--primary)', padding: '12px', borderRadius: '12px', color: 'var(--on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Database size={24} />
                 </div>
                 <div>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-main)' }}>
-                    Cấu Hình &amp; Lựa Chọn Động Cơ Cơ Sở Dữ Liệu (Database Engine)
+                    Cấu Hình Động Cơ Cơ Sở Dữ Liệu
                   </h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    Lựa chọn loại CSDL quan hệ phù hợp cho hạ tầng thư viện, kiểm tra kết nối (ping test) và tối ưu Connection Pool HikariCP
+                    Lựa chọn hệ quản trị CSDL cho hạ tầng thư viện, kiểm tra kết nối và tối ưu Connection Pool HikariCP
                   </p>
                 </div>
               </div>
@@ -2064,7 +2066,7 @@ export default function AdminSettingsView({
             {/* FORM THÔNG SỐ KẾT NỐI */}
             <div style={{ background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px', marginBottom: '24px' }}>
               <div style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Server size={16} color="var(--primary)" /> Thông Số Kết Nối ({form.dbType}):
+                <Server size={16} color="var(--primary-text)" /> Thông Số Kết Nối • {form.dbType}
               </div>
 
               <div className="admin-grid-3" style={{ marginBottom: '16px' }}>
@@ -2084,7 +2086,7 @@ export default function AdminSettingsView({
 
                 <div>
                   <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px', fontWeight: '700' }}>
-                    Cổng (Port)
+                    Cổng kết nối
                   </label>
                   <input 
                     type="text" 
@@ -2220,15 +2222,15 @@ export default function AdminSettingsView({
                   disabled={testingDb}
                   className="btn btn-outline"
                   style={{ 
-                    borderColor: '#3b82f6', 
-                    color: '#3b82f6', 
+                    borderColor: 'var(--primary-border, var(--border))', 
+                    color: 'var(--primary-text)', 
                     padding: '9px 18px', 
                     fontSize: '0.85rem',
-                    background: 'rgba(59, 130, 246, 0.05)'
+                    background: 'var(--primary-light)'
                   }}
                 >
                   {testingDb ? <RefreshCw className="animate-spin" size={16} /> : <Zap size={16} />}
-                  {testingDb ? 'Đang gửi gói tin kiểm tra tới CSDL...' : `Kiểm Tra Kết Nối ${form.dbType} (Test Connection)`}
+                  {testingDb ? 'Đang gửi gói tin kiểm tra tới CSDL...' : `Kiểm Tra Kết Nối ${form.dbType}`}
                 </button>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   Gửi lệnh ping xác thực driver, tài khoản và kiểm tra latency kết nối thực tế

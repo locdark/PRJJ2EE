@@ -73,7 +73,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
     }
   };
 
-  // Đăng nhập bằng Google OAuth 2.0 thực tế
   const handleGoogleOAuthRedirect = async () => {
     setError('');
     let activeSettings = currentSettings;
@@ -81,7 +80,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
       try {
         activeSettings = await getSystemSettings();
         if (activeSettings) setCurrentSettings(activeSettings);
-      } catch (e) {}
+      } catch {}
     }
 
     const googleClientId = (activeSettings?.googleClientId || '').trim();
@@ -89,13 +88,9 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
       window.location.hostname.includes('sanhoantien.click') ||
       (!/^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname) &&
         window.location.hostname !== 'localhost');
-    let googleRedirectUri = isCustomDomain
+    const googleRedirectUri = isCustomDomain
       ? `${window.location.origin}/auth/callback/google`
       : (activeSettings?.googleRedirectUri || `${window.location.origin}/auth/callback/google`).trim();
-    // Google OAuth 2.0 requires a domain name (.nip.io) rather than a raw IPv4 address
-    if (googleRedirectUri.includes('://160.191.244.153:')) {
-      googleRedirectUri = googleRedirectUri.replace('://160.191.244.153:', '://160.191.244.153.nip.io:');
-    }
 
     if (
       !googleClientId ||
@@ -114,13 +109,10 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
       googleClientId
     )}&redirect_uri=${encodeURIComponent(
       googleRedirectUri || window.location.origin
-    )}&response_type=token%20id_token&scope=openid%20email%20profile&state=${encodeURIComponent(
-      window.location.origin
-    )}&nonce=${Date.now()}`;
+    )}&response_type=token%20id_token&scope=openid%20email%20profile&state=google_${Date.now()}&nonce=${Date.now()}`;
     window.location.href = oauthUrl;
   };
 
-  // Đăng nhập bằng Facebook OAuth thực tế
   const handleFacebookOAuthRedirect = async () => {
     setError('');
     let activeSettings = currentSettings;
@@ -128,7 +120,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
       try {
         activeSettings = await getSystemSettings();
         if (activeSettings) setCurrentSettings(activeSettings);
-      } catch (e) {}
+      } catch {}
     }
 
     const facebookAppId = (activeSettings?.facebookAppId || '').trim();
@@ -153,6 +145,33 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
     window.location.href = fbUrl;
   };
 
+  const inputBaseStyle = {
+    width: '100%',
+    padding: '10px 12px 10px 38px',
+    borderRadius: '10px',
+    border: '1px solid var(--border)',
+    background: 'var(--bg-elevated)',
+    color: 'var(--text-main)',
+    fontSize: '0.875rem',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '0.8rem',
+    fontWeight: '700',
+    color: 'var(--text-secondary)',
+    marginBottom: '6px',
+  };
+
+  const iconStyle = {
+    position: 'absolute',
+    left: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--text-muted)',
+    pointerEvents: 'none',
+  };
+
   return (
     <div
       style={{
@@ -171,36 +190,37 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
         className="animate-fade-in"
         style={{
           width: '100%',
-          maxWidth: '450px',
+          maxWidth: '460px',
           maxHeight: '92vh',
           overflowY: 'auto',
           padding: '28px 24px',
           position: 'relative',
-          background: '#ffffff',
+          background: 'var(--bg-card)',
           borderRadius: '20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.25)',
-          color: '#0f172a',
+          border: '1px solid var(--border)',
+          boxShadow: 'var(--shadow-xl)',
+          color: 'var(--text-main)',
         }}
       >
-        {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
           style={{
             position: 'absolute',
             top: '18px',
             right: '18px',
-            background: '#f1f5f9',
-            border: 'none',
-            color: '#475569',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
-            padding: '6px',
+            width: '34px',
+            height: '34px',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          aria-label="Đóng"
+          aria-label="Đóng cửa sổ đăng nhập"
         >
           <X size={18} />
         </button>
@@ -208,58 +228,58 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '12px',
-              background: '#eff6ff',
-              color: '#1d4ed8',
+              width: '48px',
+              height: '48px',
+              borderRadius: '14px',
+              background: 'var(--primary-light)',
+              color: 'var(--primary-text)',
+              border: '1px solid var(--primary-border, var(--border))',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '10px',
+              marginBottom: '12px',
             }}
           >
             <ShieldCheck size={24} />
           </div>
           <h3
+            className="editorial-heading"
             style={{
-              fontSize: '1.4rem',
-              fontWeight: '900',
-              color: '#0f172a',
-              marginBottom: '4px',
-              letterSpacing: '-0.02em',
+              fontSize: '1.45rem',
+              fontWeight: '700',
+              color: 'var(--text-main)',
+              marginBottom: '6px',
             }}
           >
             {isLogin ? 'Cổng Đăng Nhập Thư Viện' : 'Đăng Ký Thẻ Độc Giả Mới'}
           </h3>
-          <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
             {isLogin
               ? 'Sử dụng tài khoản sinh viên, giảng viên hoặc cán bộ thư viện'
               : 'Khởi tạo hồ sơ mượn trả giáo trình và tài liệu nghiên cứu'}
           </p>
         </div>
 
-        {/* Social OAuth 2.0 Login Buttons (Google & Facebook) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
           <button
             type="button"
             onClick={handleGoogleOAuthRedirect}
             disabled={loading}
             style={{
               width: '100%',
-              padding: '11px 14px',
-              background: '#ffffff',
-              border: '1.5px solid #cbd5e1',
+              minHeight: '42px',
+              padding: '10px 14px',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
               borderRadius: '10px',
-              color: '#0f172a',
+              color: 'var(--text-main)',
               fontWeight: '700',
-              fontSize: '0.85rem',
+              fontSize: '0.86rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              boxShadow: '0 2px 5px rgba(15, 23, 42, 0.04)',
               transition: 'all 0.2s',
             }}
           >
@@ -290,19 +310,20 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
             disabled={loading}
             style={{
               width: '100%',
-              padding: '11px 14px',
+              minHeight: '42px',
+              padding: '10px 14px',
               background: '#1877F2',
-              border: '1.5px solid #1877F2',
+              border: '1px solid #1877F2',
               borderRadius: '10px',
               color: '#ffffff',
               fontWeight: '700',
-              fontSize: '0.85rem',
+              fontSize: '0.86rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '10px',
-              boxShadow: '0 2px 5px rgba(24, 119, 242, 0.2)',
+              boxShadow: 'var(--shadow-sm)',
               transition: 'all 0.2s',
             }}
           >
@@ -314,26 +335,26 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: '700' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700' }}>
             HOẶC DÙNG TÀI KHOẢN THƯ VIỆN
           </span>
-          <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
         </div>
 
         {error && (
           <div
             style={{
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
+              background: 'var(--danger-bg)',
+              border: '1px solid var(--danger-border)',
               borderRadius: '10px',
               padding: '10px 12px',
               marginBottom: '14px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              color: '#dc2626',
-              fontSize: '0.8rem',
+              color: 'var(--danger-text)',
+              fontSize: '0.82rem',
               fontWeight: '600',
             }}
           >
@@ -342,131 +363,53 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {!isLogin && (
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '0.78rem',
-                  fontWeight: '700',
-                  color: '#334155',
-                  marginBottom: '4px',
-                }}
-              >
-                Họ và tên đầy đủ *
-              </label>
+              <label style={labelStyle}>Họ và tên đầy đủ *</label>
               <div style={{ position: 'relative' }}>
-                <User
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#94a3b8',
-                  }}
-                />
+                <User size={16} style={iconStyle} />
                 <input
                   type="text"
                   required
                   placeholder="Nguyễn Văn A"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px 10px 36px',
-                    borderRadius: '9px',
-                    border: '1px solid #cbd5e1',
-                    background: '#f8fafc',
-                    color: '#0f172a',
-                    fontSize: '0.875rem',
-                  }}
+                  className="input-field"
+                  style={inputBaseStyle}
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.78rem',
-                fontWeight: '700',
-                color: '#334155',
-                marginBottom: '4px',
-              }}
-            >
-              Địa chỉ Email học vụ / cá nhân *
-            </label>
+            <label style={labelStyle}>Địa chỉ Email học vụ hoặc cá nhân *</label>
             <div style={{ position: 'relative' }}>
-              <Mail
-                size={16}
-                style={{
-                  position: 'absolute',
-                  left: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#94a3b8',
-                }}
-              />
+              <Mail size={16} style={iconStyle} />
               <input
                 type="email"
                 required
                 placeholder="email@university.edu.vn"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px 10px 36px',
-                  borderRadius: '9px',
-                  border: '1px solid #cbd5e1',
-                  background: '#f8fafc',
-                  color: '#0f172a',
-                  fontSize: '0.875rem',
-                }}
+                className="input-field"
+                style={inputBaseStyle}
               />
             </div>
           </div>
 
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.78rem',
-                fontWeight: '700',
-                color: '#334155',
-                marginBottom: '4px',
-              }}
-            >
-              Mật khẩu *
-            </label>
+            <label style={labelStyle}>Mật khẩu *</label>
             <div style={{ position: 'relative' }}>
-              <Lock
-                size={16}
-                style={{
-                  position: 'absolute',
-                  left: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#94a3b8',
-                }}
-              />
+              <Lock size={16} style={iconStyle} />
               <input
                 type="password"
                 required
-                placeholder="••••••••"
+                placeholder="Nhập mật khẩu tối thiểu 6 ký tự"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px 10px 36px',
-                  borderRadius: '9px',
-                  border: '1px solid #cbd5e1',
-                  background: '#f8fafc',
-                  color: '#0f172a',
-                  fontSize: '0.875rem',
-                }}
+                className="input-field"
+                style={inputBaseStyle}
               />
             </div>
           </div>
@@ -474,83 +417,31 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
           {!isLogin && (
             <>
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.78rem',
-                    fontWeight: '700',
-                    color: '#334155',
-                    marginBottom: '4px',
-                  }}
-                >
-                  Số điện thoại liên hệ
-                </label>
+                <label style={labelStyle}>Số điện thoại liên hệ</label>
                 <div style={{ position: 'relative' }}>
-                  <Phone
-                    size={16}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#94a3b8',
-                    }}
-                  />
+                  <Phone size={16} style={iconStyle} />
                   <input
                     type="tel"
                     placeholder="0901234567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px 10px 36px',
-                      borderRadius: '9px',
-                      border: '1px solid #cbd5e1',
-                      background: '#f8fafc',
-                      color: '#0f172a',
-                      fontSize: '0.875rem',
-                    }}
+                    className="input-field"
+                    style={inputBaseStyle}
                   />
                 </div>
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.78rem',
-                    fontWeight: '700',
-                    color: '#334155',
-                    marginBottom: '4px',
-                  }}
-                >
-                  Khoa / Viện hoặc Địa chỉ
-                </label>
+                <label style={labelStyle}>Khoa / Viện hoặc Địa chỉ</label>
                 <div style={{ position: 'relative' }}>
-                  <MapPin
-                    size={16}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#94a3b8',
-                    }}
-                  />
+                  <MapPin size={16} style={iconStyle} />
                   <input
                     type="text"
-                    placeholder="Khoa Công nghệ Thông tin / Quận 1, TP.HCM"
+                    placeholder="Khoa Công nghệ Thông tin, TP.HCM"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px 10px 36px',
-                      borderRadius: '9px',
-                      border: '1px solid #cbd5e1',
-                      background: '#f8fafc',
-                      color: '#0f172a',
-                      fontSize: '0.875rem',
-                    }}
+                    className="input-field"
+                    style={inputBaseStyle}
                   />
                 </div>
               </div>
@@ -563,10 +454,10 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
             className="btn btn-primary"
             style={{
               width: '100%',
-              padding: '12px',
+              minHeight: '44px',
               marginTop: '4px',
               fontSize: '0.92rem',
-              fontWeight: '800',
+              fontWeight: '700',
               borderRadius: '10px',
             }}
           >
@@ -588,8 +479,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
           style={{
             marginTop: '18px',
             textAlign: 'center',
-            fontSize: '0.83rem',
-            color: '#475569',
+            fontSize: '0.84rem',
+            color: 'var(--text-muted)',
           }}
         >
           {isLogin ? 'Chưa có thẻ thư viện điện tử? ' : 'Đã có tài khoản độc giả? '}
@@ -602,8 +493,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, onNavigate, 
             style={{
               background: 'none',
               border: 'none',
-              color: '#1d4ed8',
-              fontWeight: '800',
+              color: 'var(--primary-text)',
+              fontWeight: '700',
               cursor: 'pointer',
               textDecoration: 'underline',
             }}

@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { X, QrCode, CreditCard, CheckCircle2, Copy, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
+import {
+  X,
+  QrCode,
+  CreditCard,
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { createVNPayUrl, createSepayQR, checkSepayStatus } from '../services/api';
 import { showToast } from './Toast';
 
-export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 30000, onSuccess }) {
-  const [method, setMethod] = useState('sepay'); // 'sepay' or 'vnpay'
+export default function PaymentModal({
+  isOpen,
+  onClose,
+  borrowRecord,
+  amount = 30000,
+  onSuccess,
+}) {
+  const [method, setMethod] = useState('sepay');
   const [loading, setLoading] = useState(false);
   const [sepayData, setSepayData] = useState(null);
   const [vnpayUrl, setVnpayUrl] = useState('');
@@ -20,7 +35,6 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
     }
   }, [isOpen, borrowRecord, amount]);
 
-  // Tự động kiểm tra trạng thái thanh toán từ Webhook SePay mỗi 2 giây
   useEffect(() => {
     if (!isOpen || !sepayData?.transactionId || paymentSuccess) return;
 
@@ -30,12 +44,10 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
         if (payment && payment.status === 'SUCCESS') {
           setPaymentSuccess(true);
           triggerConfetti();
-          showToast('🎉 Đã nhận chuyển khoản ngân hàng thành công!', 'success');
+          showToast('Đã nhận chuyển khoản ngân hàng thành công!', 'success');
           if (onSuccess) onSuccess();
         }
-      } catch (e) {
-        // tiếp tục chờ webhook
-      }
+      } catch {}
     }, 2000);
 
     return () => clearInterval(timer);
@@ -52,6 +64,7 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
       setVnpayUrl(vData.paymentUrl);
     } catch (err) {
       console.error('Lỗi khởi tạo cổng thanh toán:', err);
+      showToast(err.message || 'Không thể khởi tạo phiên thanh toán', 'error');
     } finally {
       setLoading(false);
     }
@@ -67,11 +80,11 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
     confetti({
       particleCount: 100,
       spread: 70,
-      origin: { y: 0.6 }
+      origin: { y: 0.6 },
     });
   };
 
-  const handleSimulateSepayWebhook = async () => {
+  const handleCheckSepayStatus = async () => {
     if (!sepayData?.transactionId) return;
     setPolling(true);
     try {
@@ -79,12 +92,15 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
       if (payment && payment.status === 'SUCCESS') {
         setPaymentSuccess(true);
         triggerConfetti();
-        showToast('🎉 Đã xác nhận thanh toán ngân hàng thành công!', 'success');
+        showToast('Đã xác nhận thanh toán ngân hàng thành công!', 'success');
         if (onSuccess) onSuccess();
       } else {
-        showToast('Hệ thống đang chờ thông báo biến động số dư từ TPBank (tự động cập nhật ngay khi tiền vào)...', 'info');
+        showToast(
+          'Hệ thống đang chờ thông báo biến động số dư từ ngân hàng và sẽ tự cập nhật khi giao dịch hoàn tất.',
+          'info'
+        );
       }
-    } catch (err) {
+    } catch {
       showToast('Không thể kiểm tra trạng thái giao dịch lúc này.', 'warning');
     } finally {
       setPolling(false);
@@ -94,182 +110,321 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
   if (!isOpen) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div 
-        className="animate-fade-in" 
-        style={{ 
-          width: '100%', 
-          maxWidth: '520px', 
-          padding: '32px', 
-          position: 'relative', 
-          background: '#ffffff',
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 120,
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        className="animate-fade-in"
+        style={{
+          width: '100%',
+          maxWidth: '520px',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          padding: '28px 24px',
+          position: 'relative',
+          background: 'var(--bg-card)',
           borderRadius: '20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.25)',
-          color: '#0f172a'
+          border: '1px solid var(--border)',
+          boxShadow: 'var(--shadow-xl)',
+          color: 'var(--text-main)',
         }}
       >
-        
-        {/* Close button */}
-        <button 
-          onClick={onClose} 
-          style={{ 
-            position: 'absolute', 
-            top: '18px', 
-            right: '18px', 
-            background: '#f1f5f9', 
-            border: 'none', 
-            color: '#475569', 
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Đóng cổng thanh toán"
+          style={{
+            position: 'absolute',
+            top: '18px',
+            right: '18px',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
-            padding: '6px',
+            width: '34px',
+            height: '34px',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <X size={18} />
         </button>
 
         {paymentSuccess ? (
-          /* Màn hình thành công */
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: '#ecfdf5', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <CheckCircle2 size={40} color="#10b981" />
-            </div>
-            <h3 style={{ fontSize: '1.45rem', fontWeight: '900', color: '#047857', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-              Thanh Toán Thành Công!
-            </h3>
-            <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '24px' }}>
-              Giao dịch đã được hệ thống ngân hàng SePay / VNPay xác thực. Hóa đơn điện tử đã được ghi nhận vào hệ thống thư viện!
-            </p>
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', textAlign: 'left', marginBottom: '24px', fontSize: '0.875rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: '#64748b', fontWeight: '600' }}>Phương thức:</span>
-                <span style={{ fontWeight: '800', color: '#0284c7' }}>{method === 'sepay' ? 'SePay VietQR' : 'VNPay Sandbox'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: '#64748b', fontWeight: '600' }}>Số tiền:</span>
-                <span style={{ fontWeight: '900', color: '#059669', fontSize: '1rem' }}>{amount.toLocaleString('vi-VN')} VNĐ</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748b', fontWeight: '600' }}>Trạng thái:</span>
-                <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: '800', fontSize: '0.75rem' }}>ĐÃ HOÀN TẤT</span>
-              </div>
-            </div>
-            <button 
-              onClick={onClose} 
-              style={{ 
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                background: '#1d4ed8',
-                color: '#ffffff',
-                border: 'none',
-                fontWeight: '800',
-                cursor: 'pointer'
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                background: 'var(--success-bg)',
+                border: '2px solid var(--success-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
               }}
+            >
+              <CheckCircle2 size={38} color="var(--success-text)" />
+            </div>
+            <h3
+              className="editorial-heading"
+              style={{
+                fontSize: '1.45rem',
+                fontWeight: '700',
+                color: 'var(--success-text)',
+                marginBottom: '8px',
+              }}
+            >
+              Thanh Toán Thành Công
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: 1.55 }}>
+              Giao dịch đã được hệ thống ngân hàng xác thực. Hóa đơn điện tử đã được ghi nhận vào hồ sơ thư viện.
+            </p>
+            <div
+              style={{
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                padding: '16px',
+                textAlign: 'left',
+                marginBottom: '24px',
+                fontSize: '0.875rem',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Phương thức</span>
+                <span style={{ fontWeight: '700', color: 'var(--primary-text)' }}>
+                  {method === 'sepay' ? 'SePay VietQR' : 'Cổng VNPay'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Số tiền</span>
+                <span style={{ fontWeight: '800', color: 'var(--success-text)', fontSize: '1rem' }}>
+                  {amount.toLocaleString('vi-VN')} VNĐ
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Trạng thái</span>
+                <span className="badge badge-success">ĐÃ HOÀN TẤT</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-primary"
+              style={{ width: '100%', minHeight: '44px', fontSize: '0.92rem' }}
             >
               Đóng và Quay Lại
             </button>
           </div>
         ) : (
-          /* Màn hình chọn phương thức & thanh toán */
           <div>
-            <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: '900', color: '#0f172a', marginBottom: '4px', letterSpacing: '-0.02em' }}>
+            <div style={{ marginBottom: '20px', paddingRight: '32px' }}>
+              <h3
+                className="editorial-heading"
+                style={{
+                  fontSize: '1.4rem',
+                  fontWeight: '700',
+                  color: 'var(--text-main)',
+                  marginBottom: '6px',
+                }}
+              >
                 Cổng Thanh Toán Trực Tuyến
               </h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
-                Hỗ trợ thanh toán nhanh bằng SePay VietQR (Tự động khớp lệnh) hoặc VNPay
+              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                Thanh toán nhanh qua mã VietQR SePay tự động khớp lệnh hoặc cổng VNPay
               </p>
             </div>
 
-            {/* Selector: SePay vs VNPay */}
-            <div className="form-grid-2" style={{ marginBottom: '24px' }}>
-              <div 
+            <div className="form-grid-2" style={{ marginBottom: '20px' }}>
+              <button
+                type="button"
                 onClick={() => setMethod('sepay')}
-                style={{ 
-                  padding: '14px', 
-                  borderRadius: '12px', 
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: '12px',
                   cursor: 'pointer',
-                  border: method === 'sepay' ? '2px solid #0891b2' : '1px solid #e2e8f0',
-                  background: method === 'sepay' ? '#f0fdfa' : '#f8fafc',
+                  border:
+                    method === 'sepay'
+                      ? '2px solid var(--primary)'
+                      : '1px solid var(--border)',
+                  background: method === 'sepay' ? 'var(--primary-light)' : 'var(--bg-elevated)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px'
+                  gap: '10px',
+                  textAlign: 'left',
                 }}
               >
-                <div style={{ background: '#0891b2', padding: '8px', borderRadius: '8px', color: 'white' }}>
-                  <QrCode size={20} />
+                <div
+                  style={{
+                    background: 'var(--primary)',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    color: 'var(--on-primary)',
+                    display: 'flex',
+                  }}
+                >
+                  <QrCode size={18} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: '800', fontSize: '0.9rem', color: method === 'sepay' ? '#0e7490' : '#0f172a' }}>
+                  <div
+                    style={{
+                      fontWeight: '800',
+                      fontSize: '0.88rem',
+                      color: method === 'sepay' ? 'var(--primary-text)' : 'var(--text-main)',
+                    }}
+                  >
                     SePay VietQR
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Quét mã ngân hàng</div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Quét mã ngân hàng
+                  </div>
                 </div>
-              </div>
+              </button>
 
-              <div 
+              <button
+                type="button"
                 onClick={() => setMethod('vnpay')}
-                style={{ 
-                  padding: '14px', 
-                  borderRadius: '12px', 
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: '12px',
                   cursor: 'pointer',
-                  border: method === 'vnpay' ? '2px solid #0284c7' : '1px solid #e2e8f0',
-                  background: method === 'vnpay' ? '#f0f9ff' : '#f8fafc',
+                  border:
+                    method === 'vnpay'
+                      ? '2px solid var(--primary)'
+                      : '1px solid var(--border)',
+                  background: method === 'vnpay' ? 'var(--primary-light)' : 'var(--bg-elevated)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px'
+                  gap: '10px',
+                  textAlign: 'left',
                 }}
               >
-                <div style={{ background: '#0284c7', padding: '8px', borderRadius: '8px', color: 'white' }}>
-                  <CreditCard size={20} />
+                <div
+                  style={{
+                    background: 'var(--primary)',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    color: 'var(--on-primary)',
+                    display: 'flex',
+                  }}
+                >
+                  <CreditCard size={18} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: '800', fontSize: '0.9rem', color: method === 'vnpay' ? '#0369a1' : '#0f172a' }}>
-                    VNPay Gateway
+                  <div
+                    style={{
+                      fontWeight: '800',
+                      fontSize: '0.88rem',
+                      color: method === 'vnpay' ? 'var(--primary-text)' : 'var(--text-main)',
+                    }}
+                  >
+                    Cổng VNPay
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Thẻ ATM / Cổng VNPay</div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Thẻ nội địa &amp; ví điện tử
+                  </div>
                 </div>
-              </div>
+              </button>
             </div>
 
             {loading ? (
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <Loader2 className="animate-spin" size={36} color="#1d4ed8" style={{ margin: '0 auto 12px' }} />
-                <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '600' }}>Đang kết nối cổng thanh toán...</p>
+                <Loader2
+                  className="animate-spin"
+                  size={36}
+                  color="var(--primary-text)"
+                  style={{ margin: '0 auto 12px' }}
+                />
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>
+                  Đang kết nối cổng thanh toán...
+                </p>
               </div>
             ) : method === 'sepay' && sepayData ? (
-              /* TAB SEPAY VIETQR */
               <div>
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <div style={{ display: 'inline-block', padding: '12px', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)' }}>
-                    <img 
-                      src={sepayData.qrUrl} 
-                      alt="VietQR SePay" 
-                      style={{ width: '190px', height: '190px', display: 'block', borderRadius: '8px' }} 
+                <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+                  <div
+                    style={{
+                      display: 'inline-block',
+                      padding: '12px',
+                      background: '#ffffff', /* qr-quiet-zone */
+                      borderRadius: '16px',
+                      border: '1px solid var(--border)',
+                      boxShadow: 'var(--shadow-md)',
+                    }}
+                  >
+                    <img
+                      src={sepayData.qrUrl}
+                      alt="Mã VietQR SePay"
+                      style={{ width: '188px', height: '188px', display: 'block', borderRadius: '8px' }}
                     />
                   </div>
-                  <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#0891b2', fontWeight: '700' }}>
-                    Quét mã bằng bất kỳ ứng dụng ngân hàng nào (MBBank, Vietcombank, Techcombank, MoMo...)
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      fontSize: '0.82rem',
+                      color: 'var(--primary-text)',
+                      fontWeight: '600',
+                    }}
+                  >
+                    Quét bằng mọi ứng dụng ngân hàng hoặc ví điện tử hỗ trợ VietQR
                   </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', marginBottom: '20px', fontSize: '0.85rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Ngân hàng:</span>
-                    <span style={{ fontWeight: '800', color: '#0f172a' }}>{sepayData.bankCode} ({sepayData.accountName})</span>
+                <div
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    padding: '14px 16px',
+                    marginBottom: '16px',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '8px' }}>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Ngân hàng</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-main)', textAlign: 'right' }}>
+                      {sepayData.bankCode} • {sepayData.accountName}
+                    </span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Số tài khoản:</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Số tài khoản</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontWeight: '800', color: '#0f172a', letterSpacing: '0.05em' }}>{sepayData.accountNumber}</span>
-                      <button 
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: '700',
+                          color: 'var(--text-main)',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {sepayData.accountNumber}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Sao chép số tài khoản"
                         onClick={() => copyToClipboard(sepayData.accountNumber, 'acc')}
-                        style={{ background: 'transparent', border: 'none', color: copiedField === 'acc' ? '#10b981' : '#0891b2', cursor: 'pointer' }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: copiedField === 'acc' ? 'var(--success-text)' : 'var(--primary-text)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                        }}
                       >
                         <Copy size={14} />
                       </button>
@@ -277,19 +432,39 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Số tiền chuyển:</span>
-                    <span style={{ fontWeight: '900', color: '#059669', fontSize: '1rem' }}>{amount.toLocaleString('vi-VN')} VNĐ</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Số tiền chuyển</span>
+                    <span style={{ fontWeight: '800', color: 'var(--success-text)', fontSize: '1rem' }}>
+                      {amount.toLocaleString('vi-VN')} VNĐ
+                    </span>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Nội dung CK:</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Nội dung chuyển khoản</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontWeight: '800', color: '#b45309', background: '#fef3c7', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '6px' }}>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: '800',
+                          color: 'var(--warning-text)',
+                          background: 'var(--warning-bg)',
+                          border: '1px solid var(--warning-border)',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                        }}
+                      >
                         {sepayData.paymentCode}
                       </span>
-                      <button 
+                      <button
+                        type="button"
+                        aria-label="Sao chép nội dung chuyển khoản"
                         onClick={() => copyToClipboard(sepayData.paymentCode, 'code')}
-                        style={{ background: 'transparent', border: 'none', color: copiedField === 'code' ? '#10b981' : '#0891b2', cursor: 'pointer' }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: copiedField === 'code' ? 'var(--success-text)' : 'var(--primary-text)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                        }}
                       >
                         <Copy size={14} />
                       </button>
@@ -297,107 +472,114 @@ export default function PaymentModal({ isOpen, onClose, borrowRecord, amount = 3
                   </div>
                 </div>
 
-                {/* Live Webhook Polling & Manual Check */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.78rem', color: '#0e7490', fontWeight: '700', marginBottom: '8px', background: '#ecfeff', padding: '7px 10px', borderRadius: '8px', border: '1px dashed #67e8f9' }}>
-                  <Loader2 size={14} className="animate-spin" />
-                  Đang tự động chờ ngân hàng xác nhận chuyển khoản (2 giây/lần)...
-                </div>
-                <button 
-                  onClick={handleSimulateSepayWebhook}
-                  disabled={polling}
-                  style={{ 
-                    width: '100%', 
-                    marginBottom: '10px',
-                    padding: '11px',
-                    borderRadius: '8px',
-                    background: '#0891b2',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: '800',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
+                <div
+                  style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 12px rgba(8, 145, 178, 0.3)'
+                    fontSize: '0.8rem',
+                    color: 'var(--info-text)',
+                    fontWeight: '600',
+                    marginBottom: '12px',
+                    background: 'var(--info-bg)',
+                    padding: '9px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--info-border)',
                   }}
                 >
-                  {polling ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
-                  🔄 Tôi Đã Chuyển Khoản — Kiểm Tra Ngay
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Đang tự động đồng bộ xác nhận từ ngân hàng...</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCheckSepayStatus}
+                  disabled={polling}
+                  className="btn btn-sepay"
+                  style={{ width: '100%', minHeight: '44px', fontSize: '0.88rem' }}
+                >
+                  {polling ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    <RefreshCw size={17} />
+                  )}
+                  Tôi đã chuyển khoản — Kiểm tra ngay
                 </button>
               </div>
             ) : (
-              /* TAB VNPAY GATEWAY */
-              <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <div style={{ background: 'white', padding: '16px', borderRadius: '14px', width: 'fit-content', margin: '0 auto 20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }}>
-                  <img 
-                    src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo.svg" 
-                    alt="VNPay Logo" 
-                    style={{ height: '42px', display: 'block' }} 
-                    onError={(e) => { e.target.style.display = 'none'; }}
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <div
+                  style={{
+                    background: '#ffffff', /* qr-quiet-zone */
+                    padding: '14px 20px',
+                    borderRadius: '14px',
+                    width: 'fit-content',
+                    margin: '0 auto 20px',
+                    border: '1px solid var(--border)',
+                    boxShadow: 'var(--shadow-sm)',
+                  }}
+                >
+                  <img
+                    src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo.svg"
+                    alt="VNPay Logo"
+                    style={{ height: '40px', display: 'block', margin: '0 auto' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
                   />
-                  <div style={{ fontWeight: '800', color: '#005baa', fontSize: '1.2rem', marginTop: '4px' }}>VNPAY SANDBOX</div>
+                  <div
+                    style={{
+                      fontWeight: '800',
+                      color: '#005baa',
+                      fontSize: '1.1rem',
+                      marginTop: '4px',
+                    }}
+                  >
+                    VNPAY SANDBOX
+                  </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', textAlign: 'left', marginBottom: '24px', fontSize: '0.875rem' }}>
+                <div
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    textAlign: 'left',
+                    marginBottom: '20px',
+                    fontSize: '0.875rem',
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Đơn hàng:</span>
-                    <span style={{ fontWeight: '800', color: '#0f172a' }}>{borrowRecord ? borrowRecord.borrowCode : 'Phiếu thư viện'}</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Đơn hàng</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '700', color: 'var(--text-main)' }}>
+                      {borrowRecord ? borrowRecord.borrowCode : 'Phiếu thư viện'}
+                    </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Tổng tiền:</span>
-                    <span style={{ fontWeight: '900', color: '#059669', fontSize: '1.1rem' }}>{amount.toLocaleString('vi-VN')} VNĐ</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Tổng tiền</span>
+                    <span style={{ fontWeight: '800', color: 'var(--success-text)', fontSize: '1.05rem' }}>
+                      {amount.toLocaleString('vi-VN')} VNĐ
+                    </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b', fontWeight: '600' }}>Bảo mật:</span>
-                    <span style={{ color: '#0284c7', fontWeight: '700' }}>Mã hóa chuẩn HMAC-SHA512</span>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Bảo mật</span>
+                    <span style={{ color: 'var(--primary-text)', fontWeight: '700' }}>
+                      Chữ ký số HMAC-SHA512
+                    </span>
                   </div>
                 </div>
 
-                <a 
-                  href={vnpayUrl} 
-                  target="_blank" 
+                <a
+                  href={vnpayUrl}
+                  target="_blank"
                   rel="noreferrer"
-                  style={{ 
-                    width: '100%', 
-                    textDecoration: 'none', 
-                    marginBottom: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    background: '#0284c7',
-                    color: '#ffffff',
-                    fontWeight: '800',
-                    boxSizing: 'border-box'
-                  }}
+                  className="btn btn-sepay"
+                  style={{ width: '100%', minHeight: '44px', textDecoration: 'none' }}
                 >
-                  <ExternalLink size={18} /> Chuyển sang Cổng VNPay Sandbox
+                  <ExternalLink size={17} /> Chuyển sang Cổng VNPay Sandbox
                 </a>
-
-                <button 
-                  onClick={() => {
-                    setPaymentSuccess(true);
-                    triggerConfetti();
-                    if (onSuccess) onSuccess();
-                  }}
-                  style={{ 
-                    width: '100%', 
-                    fontSize: '0.8rem', 
-                    color: '#64748b',
-                    background: 'transparent',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    padding: '8px',
-                    cursor: 'pointer',
-                    marginTop: '8px'
-                  }}
-                >
-                  (Mô phỏng VNPay Return Code: 00 Thành Công)
-                </button>
               </div>
             )}
           </div>

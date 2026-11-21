@@ -130,9 +130,9 @@ export default function UserManagementView() {
           <div
             style={{
               marginTop: '12px',
-              background: 'rgba(16, 185, 129, 0.15)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              color: '#10b981',
+              background: 'var(--success-bg)',
+              border: '1px solid var(--success-border)',
+              color: 'var(--success-text)',
               padding: '10px 14px',
               borderRadius: '8px',
               fontSize: '0.85rem',
@@ -247,9 +247,9 @@ export default function UserManagementView() {
                       style={{ padding: '6px 12px', fontSize: '0.75rem' }}
                     >
                       {u.enabled ? (
-                        <Lock size={14} color="#ef4444" />
+                        <Lock size={14} color="var(--danger-text)" />
                       ) : (
-                        <Unlock size={14} color="#10b981" />
+                        <Unlock size={14} color="var(--success-text)" />
                       )}
                       {u.enabled ? ' Khóa' : ' Mở khóa'}
                     </button>

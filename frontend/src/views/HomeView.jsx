@@ -14,6 +14,13 @@ import {
   FileCheck2,
   Library,
   Heart,
+  Code2,
+  Cpu,
+  TrendingUp,
+  Users,
+  FlaskConical,
+  Feather,
+  Landmark,
 } from 'lucide-react';
 import { graphqlQuery } from '../services/api';
 import { GET_BOOKS, GET_CATEGORIES } from '../services/graphqlQueries';
@@ -83,8 +90,8 @@ export default function HomeView({
       name: 'Công Nghệ Thông Tin & Phần Mềm',
       desc: 'Cấu trúc dữ liệu, giải thuật, mạng máy tính, cơ sở dữ liệu & an toàn thông tin',
       count: '20 tài liệu',
-      accent: '#3b82f6',
-      icon: '💻',
+      accent: 'var(--primary-text)',
+      Icon: Code2,
       query: 'Công nghệ',
     },
     {
@@ -92,8 +99,8 @@ export default function HomeView({
       name: 'Trí Tuệ Nhân Tạo & Data',
       desc: 'Machine Learning, Deep Learning, GenAI, MLOps & Big Data',
       count: '15 tài liệu',
-      accent: '#8b5cf6',
-      icon: '🤖',
+      accent: 'var(--primary-text)',
+      Icon: Cpu,
       query: 'Trí tuệ nhân tạo',
     },
     {
@@ -101,8 +108,8 @@ export default function HomeView({
       name: 'Kinh Tế & Quản Trị Đổi Mới',
       desc: 'Quản trị chiến lược, Fintech, Marketing & Tài chính doanh nghiệp',
       count: '14 tài liệu',
-      accent: '#10b981',
-      icon: '📈',
+      accent: 'var(--success-text)',
+      Icon: TrendingUp,
       query: 'Kinh tế',
     },
     {
@@ -110,8 +117,8 @@ export default function HomeView({
       name: 'Kỹ Năng Lãnh Đạo & Tư Duy',
       desc: 'Tư duy phản biện, đàm phán thương thuyết & quản trị cảm xúc',
       count: '14 tài liệu',
-      accent: '#06b6d4',
-      icon: '🧠',
+      accent: 'var(--info-text)',
+      Icon: Users,
       query: 'Kỹ năng',
     },
     {
@@ -119,8 +126,8 @@ export default function HomeView({
       name: 'Khoa Học & Kỹ Thuật Tự Nhiên',
       desc: 'Vật lý hiện đại, toán ứng dụng, tự động hóa & năng lượng xanh',
       count: '14 tài liệu',
-      accent: '#0284c7',
-      icon: '🔬',
+      accent: 'var(--primary-text)',
+      Icon: FlaskConical,
       query: 'Khoa học',
     },
     {
@@ -128,8 +135,8 @@ export default function HomeView({
       name: 'Văn Học Cổ Điển & Đương Đại',
       desc: 'Kiệt tác văn học Việt Nam, tiểu thuyết kinh điển thế giới',
       count: '13 tài liệu',
-      accent: '#e11d48',
-      icon: '📜',
+      accent: 'var(--wishlist-text)',
+      Icon: Feather,
       query: 'Văn học',
     },
     {
@@ -137,8 +144,8 @@ export default function HomeView({
       name: 'Lịch Sử & Triết Học Tư Tưởng',
       desc: 'Quốc sử Đại Việt, văn minh nhân loại & các trường phái triết học',
       count: '10 tài liệu',
-      accent: '#d97706',
-      icon: '🏛️',
+      accent: 'var(--warning-text)',
+      Icon: Landmark,
       query: 'Lịch sử',
     },
     {
@@ -146,8 +153,8 @@ export default function HomeView({
       name: 'Kho Sách Số Mở & Ebooks',
       desc: 'Tài liệu số hóa đa phương tiện, giáo dục STEAM & nghiên cứu mở',
       count: `${stats?.totalBooks || allBooks.length || 100}+ Ebook`,
-      accent: '#0d9488',
-      icon: '📚',
+      accent: 'var(--success-text)',
+      Icon: BookOpen,
       query: '',
     },
   ];
@@ -233,23 +240,25 @@ export default function HomeView({
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  background: '#10b981',
+                  background: 'var(--success-text)',
                   display: 'inline-block',
                 }}
               />
-              Mở cửa: <strong style={{ color: 'var(--text-main)' }}>{settings?.openingHours || '07:30 – 21:00 (T2 - T7)'}</strong>
+              Mở cửa: <strong style={{ color: 'var(--text-main)' }}>{settings?.openingHours || '07:30 – 21:00 • T2 – T7'}</strong>
             </span>
             <span>•</span>
             <span>
               Độc giả đang đọc:{' '}
-              <strong style={{ color: 'var(--primary)' }}>
+              <strong style={{ color: 'var(--primary-text)' }}>
                 {stats?.onlineReaders || (allBooks.length > 0 ? allBooks.length + 18 : 28)} bạn đọc
               </strong>
             </span>
             {settings?.moitVerificationEnabled !== false && (
               <>
                 <span>•</span>
-                <span style={{ color: '#10b981', fontWeight: '700' }}>✓ Xác thực Bộ Công Thương</span>
+                <span style={{ color: 'var(--success-text)', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle2 size={13} /> Xác thực Bộ Công Thương
+                </span>
               </>
             )}
           </div>
@@ -300,14 +309,13 @@ export default function HomeView({
               </div>
 
               <h1
-                className="hero-spotlight-title"
+                className="hero-spotlight-title editorial-heading"
                 style={{
-                  fontSize: '2.3rem',
-                  fontWeight: '900',
+                  fontSize: '2.35rem',
+                  fontWeight: '700',
                   color: 'var(--text-main)',
-                  lineHeight: '1.2',
+                  lineHeight: '1.22',
                   marginBottom: '12px',
-                  letterSpacing: '-0.02em',
                 }}
               >
                 {spotlightBook.title}
@@ -332,12 +340,11 @@ export default function HomeView({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
-                    color: '#f59e0b',
+                    color: 'var(--rating-text)',
                     fontWeight: '800',
                   }}
                 >
-                  <Star size={14} fill="#f59e0b" color="#f59e0b" /> {spotlightBook.rating || 5.0} (128 phản hồi học
-                  thuật)
+                  <Star size={14} fill="var(--rating-star)" color="var(--rating-star)" /> {spotlightBook.rating || 5.0} • 128 phản hồi
                 </span>
                 <span style={{ color: 'var(--border)' }}>•</span>
                 <span className="badge badge-primary">{spotlightBook.category?.name}</span>
@@ -387,17 +394,17 @@ export default function HomeView({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    background: '#ecfdf5',
+                    background: 'var(--success-bg)',
                     padding: '7px 12px',
                     borderRadius: '6px',
-                    border: '1px solid #a7f3d0',
+                    border: '1px solid var(--success-border)',
                     fontSize: '0.8rem',
-                    color: '#047857',
+                    color: 'var(--success-text)',
                     fontWeight: '700',
                   }}
                 >
-                  <CheckCircle2 size={14} /> Sẵn sàng cho mượn ({spotlightBook.availableCopies}/
-                  {spotlightBook.totalCopies} bản)
+                  <CheckCircle2 size={14} /> Sẵn sàng • {spotlightBook.availableCopies}/
+                  {spotlightBook.totalCopies} bản
                 </div>
               </div>
 
@@ -422,7 +429,7 @@ export default function HomeView({
                     gap: '7px',
                   }}
                 >
-                  <Sparkles size={15} color="var(--primary)" /> Hỏi Trợ Lý AI về tài liệu
+                  <Sparkles size={15} color="var(--primary-text)" /> Hỏi Trợ Lý AI về tài liệu
                 </button>
 
                 {onToggleWishlist && (
@@ -437,21 +444,21 @@ export default function HomeView({
                       alignItems: 'center',
                       gap: '6px',
                       borderColor: wishlistIds.includes(String(spotlightBook.id))
-                        ? '#fecdd3'
+                        ? 'var(--wishlist-border)'
                         : 'var(--border)',
                       background: wishlistIds.includes(String(spotlightBook.id))
-                        ? '#fff1f2'
+                        ? 'var(--wishlist-bg)'
                         : 'var(--bg-card)',
                       color: wishlistIds.includes(String(spotlightBook.id))
-                        ? '#e11d48'
+                        ? 'var(--wishlist-text)'
                         : 'var(--text-main)',
                     }}
-                    title="Lưu vào Tủ sách Đọc sau / Yêu thích"
+                    title="Lưu vào Tủ sách Đọc sau & Yêu thích"
                   >
                     <Heart
                       size={15}
-                      fill={wishlistIds.includes(String(spotlightBook.id)) ? '#e11d48' : 'none'}
-                      color={wishlistIds.includes(String(spotlightBook.id)) ? '#e11d48' : 'currentColor'}
+                      fill={wishlistIds.includes(String(spotlightBook.id)) ? 'var(--wishlist-text)' : 'none'}
+                      color={wishlistIds.includes(String(spotlightBook.id)) ? 'var(--wishlist-text)' : 'currentColor'}
                     />
                     {wishlistIds.includes(String(spotlightBook.id)) ? 'Đã lưu' : 'Lưu đọc sau'}
                   </button>
@@ -522,7 +529,7 @@ export default function HomeView({
                     color: 'var(--text-main)',
                   }}
                 >
-                  <span style={{ color: '#10b981' }}>● CÒN {spotlightBook.availableCopies} BẢN</span>
+                  <span style={{ color: 'var(--success-text)' }}>● CÒN {spotlightBook.availableCopies} BẢN</span>
                   <span style={{ color: 'var(--text-muted)' }}>• NXB {spotlightBook.publishYear || 2024}</span>
                 </div>
               </div>
@@ -558,10 +565,10 @@ export default function HomeView({
               border: '1px solid var(--border)',
             }}
           >
-            <Search size={16} color="var(--primary)" style={{ flexShrink: 0 }} />
+            <Search size={16} color="var(--primary-text)" style={{ flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Tra cứu nhanh trong 100 đầu sách (Nhan đề, Tác giả, ISBN...)"
+              placeholder="Tra cứu nhanh trong 100 đầu sách theo nhan đề, tác giả hoặc mã ISBN..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyDown={(e) => {
@@ -822,82 +829,99 @@ export default function HomeView({
 
         {/* 8 Bento Topic Cards Grid */}
         <div className="responsive-topics-grid">
-          {topicCollections.map((topic) => (
-            <div
-              key={topic.id}
-              onClick={() => onGoCatalog(topic.query)}
-              className="glass-panel card-hover-lift"
-              style={{
-                padding: '18px',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                border: '1px solid var(--border)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: '125px',
-                background: 'var(--bg-card)',
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>{topic.icon}</span>
-                  <span
-                    style={{
-                      fontSize: '0.675rem',
-                      color: topic.accent,
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)',
-                      padding: '2px 7px',
-                      borderRadius: '4px',
-                      fontWeight: '700',
-                    }}
-                  >
-                    {topic.count}
-                  </span>
-                </div>
-
-                <h3
-                  style={{
-                    fontSize: '0.925rem',
-                    fontWeight: '800',
-                    color: 'var(--text-main)',
-                    margin: '0 0 4px',
-                    lineHeight: '1.3',
-                  }}
-                >
-                  {topic.name}
-                </h3>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>
-                  {topic.desc}
-                </p>
-              </div>
-
+          {topicCollections.map((topic) => {
+            const TopicIcon = topic.Icon;
+            return (
               <div
+                key={topic.id}
+                onClick={() => onGoCatalog(topic.query)}
+                className="glass-panel card-hover-lift"
                 style={{
-                  marginTop: '10px',
-                  paddingTop: '8px',
-                  borderTop: '1px solid var(--border)',
+                  padding: '18px',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  border: '1px solid var(--border)',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  color: topic.accent,
-                  fontSize: '0.725rem',
-                  fontWeight: '700',
-                  gap: '4px',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '132px',
+                  background: 'var(--bg-card)',
                 }}
               >
-                Khám phá <ArrowRight size={12} />
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '9px',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: topic.accent,
+                      }}
+                    >
+                      <TopicIcon size={18} />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '0.7rem',
+                        color: topic.accent,
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        padding: '2px 8px',
+                        borderRadius: '5px',
+                        fontWeight: '700',
+                      }}
+                    >
+                      {topic.count}
+                    </span>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: '0.94rem',
+                      fontWeight: '800',
+                      color: 'var(--text-main)',
+                      margin: '0 0 4px',
+                      lineHeight: '1.35',
+                    }}
+                  >
+                    {topic.name}
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.45' }}>
+                    {topic.desc}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: '12px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    color: topic.accent,
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    gap: '4px',
+                  }}
+                >
+                  Khám phá <ArrowRight size={13} />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -926,7 +950,7 @@ export default function HomeView({
             >
               MỤC LỤC TÀI LIỆU TUYỂN CHỌN
             </div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
+            <h2 className="editorial-heading" style={{ fontSize: '1.45rem', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
               Kho Tài Liệu Đọc &amp; Nghiên Cứu
             </h2>
           </div>
@@ -960,14 +984,14 @@ export default function HomeView({
                 transition: 'all 0.15s ease',
               }}
             >
-              <Zap size={14} /> Sách Mới Cập Nhật ({newestBooks.length})
+              <Zap size={14} /> Sách Mới Cập Nhật <span className="pill-count" style={activeTab === 'newest' ? { background: 'rgba(255,255,255,0.22)', color: 'var(--on-primary)' } : undefined}>{newestBooks.length}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('recommended')}
               style={{
                 background: activeTab === 'recommended' ? 'var(--primary)' : 'transparent',
-                color: activeTab === 'recommended' ? '#ffffff' : 'var(--text-muted)',
+                color: activeTab === 'recommended' ? 'var(--on-primary)' : 'var(--text-muted)',
                 border: 'none',
                 padding: '7px 16px',
                 borderRadius: '6px',
@@ -980,8 +1004,7 @@ export default function HomeView({
                 transition: 'all 0.15s ease',
               }}
             >
-              <Star size={14} fill={activeTab === 'recommended' ? '#ffffff' : 'none'} /> Sách Đề Xuất Đọc (
-              {recommendedBooks.length})
+              <Star size={14} fill={activeTab === 'recommended' ? 'var(--on-primary)' : 'none'} /> Sách Đề Xuất Đọc <span className="pill-count" style={activeTab === 'recommended' ? { background: 'rgba(255,255,255,0.22)', color: 'var(--on-primary)' } : undefined}>{recommendedBooks.length}</span>
             </button>
           </div>
         </div>
@@ -1060,10 +1083,10 @@ export default function HomeView({
                         height: '28px',
                         borderRadius: '50%',
                         background: wishlistIds.includes(String(book.id))
-                          ? '#fff1f2'
-                          : 'rgba(255, 255, 255, 0.92)',
+                          ? 'var(--wishlist-bg)'
+                          : 'var(--bg-card)',
                         border: wishlistIds.includes(String(book.id))
-                          ? '1px solid #fecdd3'
+                          ? '1px solid var(--wishlist-border)'
                           : '1px solid var(--border)',
                         display: 'flex',
                         alignItems: 'center',
@@ -1075,8 +1098,8 @@ export default function HomeView({
                     >
                       <Heart
                         size={14}
-                        fill={wishlistIds.includes(String(book.id)) ? '#e11d48' : 'none'}
-                        color={wishlistIds.includes(String(book.id)) ? '#e11d48' : '#64748b'}
+                        fill={wishlistIds.includes(String(book.id)) ? 'var(--wishlist-text)' : 'none'}
+                        color={wishlistIds.includes(String(book.id)) ? 'var(--wishlist-text)' : 'var(--text-muted)'}
                       />
                     </button>
                   )}
@@ -1087,7 +1110,7 @@ export default function HomeView({
                       position: 'absolute',
                       top: '8px',
                       right: '8px',
-                      background: 'var(--bg-card)',
+                      background: 'var(--rating-bg)',
                       padding: '2px 7px',
                       borderRadius: '5px',
                       display: 'flex',
@@ -1095,12 +1118,12 @@ export default function HomeView({
                       gap: '3px',
                       fontSize: '0.725rem',
                       fontWeight: '800',
-                      color: '#d97706',
+                      color: 'var(--rating-text)',
                       boxShadow: 'var(--shadow-sm)',
-                      border: '1px solid #fde68a',
+                      border: '1px solid var(--rating-border)',
                     }}
                   >
-                    <Star size={11} fill="#f59e0b" color="#f59e0b" /> {book.rating || 5.0}
+                    <Star size={11} fill="var(--rating-star)" color="var(--rating-star)" /> {book.rating || 5.0}
                   </div>
 
                   {/* Stock Badge */}

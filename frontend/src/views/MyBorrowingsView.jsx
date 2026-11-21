@@ -106,15 +106,28 @@ export default function MyBorrowingsView({ user, onPayFine }) {
     showToast('Đã xuất danh sách phiếu mượn ra file CSV!', 'success');
   };
 
+  const isRecordOverdue = (rec) =>
+    rec.status === 'OVERDUE' ||
+    (rec.status === 'BORROWED' && rec.dueDate && new Date(rec.dueDate) < new Date());
+
   const getDueDateMetrics = (rec) => {
     if (!rec.dueDate) {
-      return { daysLeft: 14, progressPercent: 30, color: '#10b981', label: 'Đang trong hạn mượn' };
+      return {
+        daysLeft: 14,
+        progressPercent: 30,
+        color: 'var(--success-text)',
+        bg: 'var(--success-bg)',
+        border: 'var(--success-border)',
+        label: 'Đang trong hạn mượn',
+      };
     }
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const due = new Date(rec.dueDate);
     due.setHours(0, 0, 0, 0);
-    const start = rec.borrowDate ? new Date(rec.borrowDate) : new Date(now.getTime() - 7 * 86400000);
+    const start = rec.borrowDate
+      ? new Date(rec.borrowDate)
+      : new Date(now.getTime() - 7 * 86400000);
     start.setHours(0, 0, 0, 0);
 
     const totalDays = Math.max(1, Math.round((due - start) / 86400000));
@@ -126,9 +139,9 @@ export default function MyBorrowingsView({ user, onPayFine }) {
       return {
         daysLeft,
         progressPercent: 100,
-        color: '#dc2626',
-        bg: '#fef2f2',
-        border: '#fecaca',
+        color: 'var(--danger-text)',
+        bg: 'var(--danger-bg)',
+        border: 'var(--danger-border)',
         label: `Quá hạn ${Math.abs(daysLeft)} ngày`,
       };
     }
@@ -136,18 +149,18 @@ export default function MyBorrowingsView({ user, onPayFine }) {
       return {
         daysLeft,
         progressPercent: Math.max(75, progressPercent),
-        color: '#d97706',
-        bg: '#fffbeb',
-        border: '#fde68a',
-        label: daysLeft === 0 ? 'Hạn trả hôm nay!' : `Sắp đến hạn (còn ${daysLeft} ngày)`,
+        color: 'var(--warning-text)',
+        bg: 'var(--warning-bg)',
+        border: 'var(--warning-border)',
+        label: daysLeft === 0 ? 'Hạn trả hôm nay' : `Còn ${daysLeft} ngày đến hạn`,
       };
     }
     return {
       daysLeft,
       progressPercent,
-      color: '#10b981',
-      bg: '#ecfdf5',
-      border: '#a7f3d0',
+      color: 'var(--success-text)',
+      bg: 'var(--success-bg)',
+      border: 'var(--success-border)',
       label: `Còn ${daysLeft} ngày`,
     };
   };
@@ -155,16 +168,13 @@ export default function MyBorrowingsView({ user, onPayFine }) {
   const activeCount = borrowings.filter(
     (r) => r.status === 'BORROWED' || r.status === 'PENDING'
   ).length;
-  const overdueCount = borrowings.filter(
-    (r) => r.status === 'OVERDUE' || (r.status === 'BORROWED' && new Date(r.dueDate) < new Date())
-  ).length;
+  const overdueCount = borrowings.filter(isRecordOverdue).length;
   const returnedCount = borrowings.filter((r) => r.status === 'RETURNED').length;
 
   const filteredBorrowings = borrowings.filter((rec) => {
-    const isOverdue =
-      rec.status === 'OVERDUE' || (rec.status === 'BORROWED' && new Date(rec.dueDate) < new Date());
-    if (statusFilter === 'BORROWED') return rec.status === 'BORROWED' && !isOverdue;
-    if (statusFilter === 'OVERDUE') return isOverdue;
+    const overdue = isRecordOverdue(rec);
+    if (statusFilter === 'BORROWED') return rec.status === 'BORROWED' && !overdue;
+    if (statusFilter === 'OVERDUE') return overdue;
     if (statusFilter === 'RETURNED') return rec.status === 'RETURNED';
     return true;
   });
@@ -175,16 +185,17 @@ export default function MyBorrowingsView({ user, onPayFine }) {
       <div className="my-borrowings-header-grid" style={{ marginBottom: '24px' }}>
         <div>
           <h1
+            className="editorial-heading"
             style={{
               fontSize: '2.1rem',
-              fontWeight: '900',
+              fontWeight: '700',
               color: 'var(--text-main)',
               marginBottom: '8px',
             }}
           >
             Sách Đang Mượn &amp; Lịch Sử Lưu Thông
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem', lineHeight: 1.55 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem', lineHeight: 1.6 }}>
             Theo dõi thời hạn trả giáo trình, chủ động gia hạn trực tuyến và xuất phiếu mượn đối chiếu tại quầy lưu thông.
           </p>
 
@@ -192,9 +203,9 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             <div
               style={{
                 marginTop: '14px',
-                background: 'rgba(16, 185, 129, 0.15)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                color: '#10b981',
+                background: 'var(--success-bg)',
+                border: '1px solid var(--success-border)',
+                color: 'var(--success-text)',
                 padding: '10px 16px',
                 borderRadius: '10px',
                 fontSize: '0.85rem',
@@ -209,14 +220,14 @@ export default function MyBorrowingsView({ user, onPayFine }) {
           )}
         </div>
 
-        {/* Digital Library Card Badge */}
+        {/* Digital Library Card */}
         <div
           className="glass-panel"
           style={{
             padding: '20px',
             borderRadius: '18px',
             background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
-            border: '1px solid #1e293b',
+            border: '1px solid #243b6b',
             boxShadow: 'var(--shadow-lg)',
             position: 'relative',
             overflow: 'hidden',
@@ -233,8 +244,8 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             <div>
               <div
                 style={{
-                  fontSize: '0.7rem',
-                  color: '#38bdf8',
+                  fontSize: '0.72rem',
+                  color: '#7dd3fc',
                   fontWeight: '800',
                   letterSpacing: '0.05em',
                 }}
@@ -244,23 +255,23 @@ export default function MyBorrowingsView({ user, onPayFine }) {
               <div
                 style={{
                   fontSize: '1.15rem',
-                  fontWeight: '900',
+                  fontWeight: '800',
                   color: '#ffffff',
-                  letterSpacing: '-0.01em',
+                  marginTop: '2px',
                 }}
               >
                 {user?.fullName || 'Độc Giả Thư Viện'}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#93c5fd', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#cbd5e1', marginTop: '2px' }}>
                 {user?.email}
               </div>
             </div>
             <div
               style={{
-                background: '#ffffff',
+                background: '#ffffff', /* qr-quiet-zone */
                 padding: '6px',
                 borderRadius: '8px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
               <QrCode size={40} color="#0f172a" />
@@ -272,18 +283,19 @@ export default function MyBorrowingsView({ user, onPayFine }) {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-end',
-              borderTop: '1px solid rgba(255,255,255,0.12)',
+              borderTop: '1px solid rgba(255,255,255,0.16)',
               paddingTop: '12px',
             }}
           >
             <div>
-              <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>MÃ THẺ ĐỘC GIẢ</div>
+              <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>MÃ THẺ ĐỘC GIẢ</div>
               <div
                 style={{
-                  fontSize: '0.85rem',
-                  fontWeight: '800',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.88rem',
+                  fontWeight: '700',
                   color: '#f8fafc',
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.04em',
                 }}
               >
                 LIB-2026-{(user?.id || 101).toString().padStart(4, '0')}
@@ -305,11 +317,11 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             border: '1px solid var(--border)',
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700' }}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: '700' }}>
             TỔNG PHIẾU MƯỢN
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--text-main)', marginTop: '4px' }}>
-            {borrowings.length} <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>phiếu</span>
+            {borrowings.length} <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>phiếu</span>
           </div>
         </div>
 
@@ -322,11 +334,11 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             border: '1px solid var(--border)',
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700' }}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--primary-text)', fontWeight: '700' }}>
             ĐANG LƯU HÀNH
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--primary)', marginTop: '4px' }}>
-            {activeCount} <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>cuốn</span>
+          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--primary-text)', marginTop: '4px' }}>
+            {activeCount} <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>cuốn</span>
           </div>
         </div>
 
@@ -336,14 +348,14 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             padding: '16px 18px',
             borderRadius: '12px',
             background: 'var(--bg-card)',
-            border: overdueCount > 0 ? '1px solid #fecaca' : '1px solid var(--border)',
+            border: overdueCount > 0 ? '1px solid var(--danger-border)' : '1px solid var(--border)',
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: '700' }}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--danger-text)', fontWeight: '700' }}>
             QUÁ HẠN CẦN TRẢ
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#dc2626', marginTop: '4px' }}>
-            {overdueCount} <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>cuốn</span>
+          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--danger-text)', marginTop: '4px' }}>
+            {overdueCount} <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>cuốn</span>
           </div>
         </div>
 
@@ -356,11 +368,11 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             border: '1px solid var(--border)',
           }}
         >
-          <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '700' }}>
+          <div style={{ fontSize: '0.76rem', color: 'var(--success-text)', fontWeight: '700' }}>
             ĐÃ HOÀN TRẢ
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#10b981', marginTop: '4px' }}>
-            {returnedCount} <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>cuốn</span>
+          <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--success-text)', marginTop: '4px' }}>
+            {returnedCount} <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>cuốn</span>
           </div>
         </div>
       </div>
@@ -369,7 +381,7 @@ export default function MyBorrowingsView({ user, onPayFine }) {
       <div
         style={{
           marginBottom: '20px',
-          padding: '12px 16px',
+          padding: '14px 16px',
           borderRadius: '12px',
           background: 'var(--bg-elevated)',
           border: '1px solid var(--border)',
@@ -385,15 +397,15 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            fontSize: '0.82rem',
+            fontSize: '0.84rem',
             color: 'var(--text-main)',
-            lineHeight: 1.5,
+            lineHeight: 1.55,
           }}
         >
-          <Info size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
+          <Info size={18} color="var(--primary-text)" style={{ flexShrink: 0 }} />
           <span>
             <strong>Hướng dẫn gia hạn &amp; trả sách:</strong> Độc giả được gia hạn trực tuyến thêm{' '}
-            <strong>+7 ngày</strong> trước khi sách quá hạn. Khi trả sách tại Tầng 1, vui lòng xuất trình Mã Thẻ hoặc file phiếu mượn CSV.
+            <strong>7 ngày</strong> trước khi sách quá hạn. Khi trả sách tại Tầng 1, vui lòng xuất trình Mã Thẻ hoặc file CSV.
           </span>
         </div>
 
@@ -401,18 +413,9 @@ export default function MyBorrowingsView({ user, onPayFine }) {
           type="button"
           onClick={handleExportCSV}
           className="btn btn-secondary"
-          style={{
-            padding: '8px 14px',
-            fontSize: '0.8rem',
-            fontWeight: '800',
-            borderRadius: '8px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            whiteSpace: 'nowrap',
-          }}
+          style={{ fontSize: '0.82rem', fontWeight: '700', whiteSpace: 'nowrap' }}
         >
-          <Download size={15} color="var(--primary)" /> Xuất phiếu mượn (CSV / In)
+          <Download size={15} color="var(--primary-text)" /> Xuất phiếu mượn CSV
         </button>
       </div>
 
@@ -427,30 +430,46 @@ export default function MyBorrowingsView({ user, onPayFine }) {
         }}
       >
         {[
-          { id: 'ALL', label: `Tất cả (${borrowings.length})` },
-          { id: 'BORROWED', label: `Đang mượn (${activeCount})` },
-          { id: 'OVERDUE', label: `Quá hạn (${overdueCount})` },
-          { id: 'RETURNED', label: `Đã trả (${returnedCount})` },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setStatusFilter(tab.id)}
-            style={{
-              padding: '7px 14px',
-              borderRadius: '999px',
-              fontSize: '0.8rem',
-              fontWeight: '800',
-              border:
-                statusFilter === tab.id ? '1px solid var(--primary)' : '1px solid var(--border)',
-              background: statusFilter === tab.id ? 'var(--primary)' : 'var(--bg-card)',
-              color: statusFilter === tab.id ? '#ffffff' : 'var(--text-main)',
-              cursor: 'pointer',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { id: 'ALL', label: 'Tất cả', count: borrowings.length },
+          { id: 'BORROWED', label: 'Đang mượn', count: activeCount },
+          { id: 'OVERDUE', label: 'Quá hạn', count: overdueCount },
+          { id: 'RETURNED', label: 'Đã trả', count: returnedCount },
+        ].map((tab) => {
+          const active = statusFilter === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              style={{
+                minHeight: '38px',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                border: active ? '1px solid var(--primary)' : '1px solid var(--border)',
+                background: active ? 'var(--primary)' : 'var(--bg-card)',
+                color: active ? 'var(--on-primary)' : 'var(--text-main)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>{tab.label}</span>
+              <span
+                className="pill-count"
+                style={
+                  active
+                    ? { background: 'rgba(255,255,255,0.22)', color: 'var(--on-primary)' }
+                    : undefined
+                }
+              >
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Borrowings List */}
@@ -476,9 +495,10 @@ export default function MyBorrowingsView({ user, onPayFine }) {
         >
           <BookMarked size={48} color="var(--text-muted)" style={{ margin: '0 auto 16px' }} />
           <h3
+            className="editorial-heading"
             style={{
               fontSize: '1.2rem',
-              fontWeight: '800',
+              fontWeight: '700',
               color: 'var(--text-main)',
               marginBottom: '8px',
             }}
@@ -486,15 +506,13 @@ export default function MyBorrowingsView({ user, onPayFine }) {
             Không có phiếu mượn nào trong danh mục này
           </h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Hãy truy cập kho sách để chọn và đăng ký mượn tài liệu học tập ngay nhé!
+            Hãy truy cập kho sách để chọn và đăng ký mượn tài liệu học tập.
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {filteredBorrowings.map((rec) => {
-            const isOverdue =
-              rec.status === 'OVERDUE' ||
-              (rec.status === 'BORROWED' && new Date(rec.dueDate) < new Date());
+            const overdue = isRecordOverdue(rec);
             const hasFine = rec.fineAmount && rec.fineAmount > 0;
             const dueMetrics = getDueDateMetrics(rec);
 
@@ -504,9 +522,9 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                 className="my-borrowings-item-grid surface-card"
                 style={{
                   padding: '20px',
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   background: 'var(--bg-card)',
-                  border: isOverdue ? '1px solid #ef4444' : '1px solid var(--border)',
+                  border: overdue ? '1px solid var(--danger-border)' : '1px solid var(--border)',
                   boxShadow: 'var(--shadow-card)',
                 }}
               >
@@ -537,34 +555,35 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                       alignItems: 'center',
                       flexWrap: 'wrap',
                       gap: '10px',
-                      marginBottom: '6px',
+                      marginBottom: '8px',
                     }}
                   >
                     <span
                       style={{
-                        fontSize: '0.75rem',
-                        fontWeight: '800',
-                        color: 'var(--primary)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        color: 'var(--primary-text)',
                       }}
                     >
                       #{rec.borrowCode}
                     </span>
                     <span
                       className={`badge ${
-                        rec.status === 'BORROWED' && !isOverdue
+                        rec.status === 'BORROWED' && !overdue
                           ? 'badge-info'
                           : rec.status === 'RETURNED'
                           ? 'badge-success'
-                          : isOverdue
+                          : overdue
                           ? 'badge-danger'
                           : 'badge-warning'
                       }`}
                     >
-                      {rec.status === 'BORROWED' && !isOverdue
+                      {rec.status === 'BORROWED' && !overdue
                         ? 'Đang mượn'
                         : rec.status === 'RETURNED'
                         ? 'Đã trả'
-                        : isOverdue
+                        : overdue
                         ? 'Quá hạn'
                         : rec.status}
                     </span>
@@ -572,9 +591,9 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                     {rec.status !== 'RETURNED' && (
                       <span
                         style={{
-                          fontSize: '0.72rem',
-                          fontWeight: '800',
-                          padding: '2px 8px',
+                          fontSize: '0.74rem',
+                          fontWeight: '700',
+                          padding: '3px 10px',
                           borderRadius: '999px',
                           background: dueMetrics.bg,
                           color: dueMetrics.color,
@@ -587,11 +606,12 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                   </div>
 
                   <h3
+                    className="editorial-heading"
                     style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '800',
+                      fontSize: '1.12rem',
+                      fontWeight: '700',
                       color: 'var(--text-main)',
-                      marginBottom: '6px',
+                      marginBottom: '8px',
                     }}
                   >
                     {rec.book?.title}
@@ -602,29 +622,39 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                       display: 'flex',
                       flexWrap: 'wrap',
                       gap: '16px',
-                      fontSize: '0.8rem',
+                      fontSize: '0.82rem',
                       color: 'var(--text-muted)',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Calendar size={14} color="var(--primary)" /> Ngày mượn: {rec.borrowDate}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <BookOpen size={14} color="var(--primary-text)" />
+                      <span>Ngày mượn: {rec.borrowDate}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={14} color={isOverdue ? '#dc2626' : '#10b981'} />
-                      Hạn trả:{' '}
-                      <strong style={{ color: isOverdue ? '#dc2626' : '#10b981' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Calendar size={14} color="var(--primary-text)" />
+                      <span>Hạn trả: </span>
+                      <strong style={{ color: overdue ? 'var(--danger-text)' : 'var(--text-main)' }}>
                         {rec.dueDate}
                       </strong>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={14} color="var(--accent)" /> Kệ:{' '}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Clock size={14} color={overdue ? 'var(--danger-text)' : 'var(--success-text)'} />
+                      <strong style={{ color: overdue ? 'var(--danger-text)' : 'var(--success-text)' }}>
+                        {rec.status === 'RETURNED'
+                          ? `Đã trả: ${rec.returnDate || 'Hoàn tất'}`
+                          : overdue
+                          ? 'Quá hạn trả'
+                          : 'Trong thời hạn'}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <MapPin size={14} color="var(--primary-text)" /> Kệ:{' '}
                       {rec.book?.shelfLocation || 'A-01'}
                     </div>
                   </div>
 
-                  {/* Smart Due-Date Progress Bar */}
                   {rec.status !== 'RETURNED' && (
-                    <div style={{ marginTop: '10px', maxWidth: '460px' }}>
+                    <div style={{ marginTop: '12px', maxWidth: '460px' }}>
                       <div
                         style={{
                           width: '100%',
@@ -652,11 +682,15 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                     <div
                       style={{
                         marginTop: '10px',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        color: '#ef4444',
-                        fontSize: '0.85rem',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: 'var(--danger-bg)',
+                        border: '1px solid var(--danger-border)',
+                        color: 'var(--danger-text)',
+                        fontSize: '0.84rem',
                         fontWeight: '700',
                       }}
                     >
@@ -666,45 +700,50 @@ export default function MyBorrowingsView({ user, onPayFine }) {
                   )}
                 </div>
 
-                {/* Action Buttons */}
                 <div
                   className="my-borrowings-actions"
                   style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
                 >
-                  {rec.status === 'BORROWED' && !isOverdue && (
+                  {rec.status === 'BORROWED' && !overdue && (
                     <button
+                      type="button"
                       className="btn btn-outline"
                       onClick={() => handleRenew(rec.id)}
-                      style={{ fontSize: '0.8rem', padding: '8px 14px' }}
+                      style={{ fontSize: '0.82rem', minHeight: '40px' }}
                     >
-                      <RefreshCw size={14} /> Gia hạn (+7 ngày)
+                      <RefreshCw size={14} /> Gia hạn thêm 7 ngày
                     </button>
                   )}
 
                   {hasFine ? (
                     <button
+                      type="button"
                       className="btn btn-sepay"
                       onClick={() => onPayFine(rec, rec.fineAmount)}
-                      style={{ fontSize: '0.8rem', padding: '8px 14px' }}
+                      style={{ fontSize: '0.82rem', minHeight: '40px' }}
                     >
-                      <CreditCard size={14} /> Thanh toán phạt (
-                      {rec.fineAmount.toLocaleString('vi-VN')}đ)
+                      <CreditCard size={14} /> Thanh toán phạt •{' '}
+                      {rec.fineAmount.toLocaleString('vi-VN')} VNĐ
                     </button>
                   ) : (
                     rec.status === 'BORROWED' && (
                       <button
+                        type="button"
                         className="btn btn-sepay"
                         onClick={() => onPayFine(rec, 28000)}
-                        style={{ fontSize: '0.8rem', padding: '8px 14px' }}
+                        style={{ fontSize: '0.82rem', minHeight: '40px' }}
                       >
-                        <QrCode size={14} /> Chuyển khoản gia hạn (+14 ngày / 28.000đ)
+                        <QrCode size={14} /> Chuyển khoản gia hạn 14 ngày • 28.000đ
                       </button>
                     )
                   )}
 
                   {rec.status === 'RETURNED' && (
-                    <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: '700' }}>
-                      ✓ Đã hoàn tất trả sách
+                    <span
+                      className="badge badge-success"
+                      style={{ justifyContent: 'center', minHeight: '36px', fontSize: '0.8rem' }}
+                    >
+                      <CheckCircle2 size={14} /> Đã hoàn tất trả sách
                     </span>
                   )}
                 </div>

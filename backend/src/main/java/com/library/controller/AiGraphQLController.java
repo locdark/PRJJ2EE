@@ -15,7 +15,6 @@ import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AiGraphQLController {
 
     private final AiLibrarianService aiLibrarianService;
