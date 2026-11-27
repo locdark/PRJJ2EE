@@ -58,7 +58,7 @@ export default function AdminDashboardView({
     popupTitle: 'Thông Báo: Khai Trương Kho Sách Số & Tuần Lễ Văn Hóa Đọc 2026',
     popupBadgeText: 'HOT • BẢN TIN SỐ #1792776375',
     popupBannerUrl: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1000',
-    popupContent: 'Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary! Nhằm phục vụ đợt thi học kỳ và nhu cầu nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn/độc giả, miễn phí đọc 100 tài liệu số chuyên ngành. Trợ lý AI Gemini đã sẵn sàng hỗ trợ tra cứu 24/7.',
+    popupContent: 'Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary! Nhằm phục vụ đợt thi học kỳ và nhu cầu nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn/độc giả, miễn phí đọc 100 tài liệu số chuyên ngành. Trợ lý AI đã sẵn sàng hỗ trợ tra cứu 24/7.',
     popupLinkText: 'Xem Kho Sách & Tra Cứu'
   });
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -224,7 +224,7 @@ export default function AdminDashboardView({
       items: [
         { id: 'popup', label: 'Quản Lý Popup & Bản Tin', icon: Bell, tag: 'POPUP', tagBg: '#78350f', tagColor: '#fde047' },
         { id: 'branding', label: 'Nhận Diện & Thương Hiệu', icon: Globe, tag: 'SYS', tagBg: '#1e3a8a', tagColor: '#60a5fa' },
-        { id: 'gemini', label: 'Trợ Lý AI Gemini', icon: Sparkles, tag: 'AI', tagBg: '#4c1d95', tagColor: '#c084fc' },
+        { id: 'gemini', label: 'Trợ Lý Thủ Thư AI', icon: Sparkles, tag: 'AI', tagBg: '#4c1d95', tagColor: '#c084fc' },
         { id: 'oauth', label: 'Xác Thực OAuth (Google & FB)', icon: Key, tag: 'AUTH', tagBg: '#064e3b', tagColor: '#4ade80' },
         { id: 'database', label: 'Cơ Sở Dữ Liệu (5 DBs)', icon: Database, tag: 'DB', tagBg: '#7c2d12', tagColor: '#38bdf8' },
         { id: 'payment', label: 'Cổng Thanh Toán (VNPay & SePay)', icon: CreditCard, tag: 'PAY', tagBg: '#713f12', tagColor: '#fde047' },

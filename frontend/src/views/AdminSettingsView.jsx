@@ -491,7 +491,7 @@ export default function AdminSettingsView({
         <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px', marginBottom: '28px', overflowX: 'auto' }}>
           {[
             { id: 'branding', label: 'Thương hiệu & Website', icon: Globe },
-            { id: 'gemini', label: 'Trợ Lý AI (Google Gemini)', icon: Sparkles },
+            { id: 'gemini', label: 'Cấu hình Trợ Lý AI', icon: Sparkles },
             { id: 'oauth', label: 'Xác Thực OAuth (Google & Facebook)', icon: Key },
             { id: 'payment', label: 'Cổng Thanh toán (VNPay & SePay)', icon: CreditCard },
             { id: 'cloudflare', label: 'Cloudflare & Cloud CDN', icon: Cloud },
@@ -755,7 +755,7 @@ export default function AdminSettingsView({
                 </div>
                 <div>
                   <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', margin: '0 0 4px' }}>
-                    Cấu Hình Trí Tuệ Nhân Tạo Google Gemini AI
+                    Cấu Hình Trí Tuệ Nhân Tạo (AI Assistant)
                   </h2>
                   <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
                     Kích hoạt mô hình ngôn ngữ lớn (LLM) để trả lời câu hỏi tự nhiên và tư vấn sách trong kho 100 giáo trình
@@ -783,10 +783,10 @@ export default function AdminSettingsView({
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '14px 18px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.9rem' }}>
-                  Kích hoạt Trợ lý Thủ thư AI Gemini cho độc giả
+                  Kích hoạt Trợ lý Thủ thư AI cho độc giả
                 </div>
                 <div style={{ fontSize: '0.775rem', color: '#64748b' }}>
-                  Khi bật, người dùng bấm "Trợ lý AI" sẽ được trò chuyện trực tiếp với Google Gemini tích hợp ngữ cảnh kho sách
+                  Khi bật, người dùng bấm "Trợ lý AI" sẽ được trò chuyện trực tiếp với Trợ lý AI tích hợp ngữ cảnh kho sách
                 </div>
               </div>
               <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '8px' }}>
@@ -807,7 +807,7 @@ export default function AdminSettingsView({
               {/* Gemini API Key */}
               <div>
                 <label style={{ fontSize: '0.8rem', color: '#334155', display: 'block', marginBottom: '6px', fontWeight: '800' }}>
-                  Google Gemini API Key (Bắt đầu bằng AIzaSy...)
+                  AI API Key (Google AI Studio)
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input 
@@ -858,7 +858,7 @@ export default function AdminSettingsView({
                     }}
                   >
                     <RefreshCw size={12} className={scanningModels ? 'animate-spin' : ''} />
-                    {scanningModels ? 'Đang quét từ Google...' : '🔍 Quét Model Từ Key'}
+                    {scanningModels ? 'Đang quét Model...' : '🔍 Quét Model Từ Key'}
                   </button>
                 </div>
                 <select 
@@ -981,7 +981,7 @@ export default function AdminSettingsView({
                 style={{ padding: '9px 24px', fontSize: '0.85rem' }}
               >
                 {saving ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
-                Lưu Cấu Hình Gemini
+                Lưu Cấu Hình Trợ Lý AI
               </button>
             </div>
 

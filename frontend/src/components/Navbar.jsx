@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen,
-  Sparkles,
   Shield,
   LogOut,
   LogIn,
@@ -378,28 +377,6 @@ export default function Navbar({
               <Bell size={14} /> Bản Tin <span className="hide-on-tablet">Thư Viện</span>
             </button>
           )}
-
-          {/* AI Assistant Button */}
-          <button
-            onClick={onOpenAi}
-            style={{
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-              color: '#ffffff',
-              border: '1px solid #334155',
-              padding: '6px 13px',
-              borderRadius: '7px',
-              fontSize: '0.8rem',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              whiteSpace: 'nowrap',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            <Sparkles size={14} color="#38bdf8" /> Trợ lý AI
-          </button>
 
           {/* Dedicated Reader Borrowing History Link */}
           {user && (
@@ -988,28 +965,6 @@ export default function Navbar({
                 <Bell size={18} color="var(--primary)" /> Bản Tin Thư Viện
               </button>
             )}
-
-            <button
-              onClick={() => {
-                onOpenAi();
-                setMobileMenuOpen(false);
-              }}
-              style={{
-                background: '#0f172a',
-                color: '#ffffff',
-                border: 'none',
-                padding: '10px 14px',
-                borderRadius: '8px',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <Sparkles size={18} color="#38bdf8" /> Trợ lý AI Học Thuật
-            </button>
 
             {user && (
               <button

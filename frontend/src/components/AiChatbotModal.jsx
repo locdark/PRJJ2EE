@@ -96,7 +96,7 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
         ...prev,
         {
           sender: 'ai',
-          text: 'Xin lỗi, hiện tại kết nối AI đang gián đoạn hoặc API Key chưa được kích hoạt. Bạn vui lòng thử lại hoặc nhờ Admin kiểm tra cấu hình **Gemini API Key** nhé!',
+          text: 'Xin lỗi, hiện tại kết nối AI đang gián đoạn. Bạn vui lòng thử lại sau giây lát hoặc liên hệ Quản trị viên để được hỗ trợ nhé!',
         },
       ]);
     } finally {
@@ -177,7 +177,7 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
                   Trợ Lý Thư Viện AI
                 </h3>
                 <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '1px 6px' }}>
-                  GOOGLE GEMINI PRO
+                  AI LIBRARIAN
                 </span>
               </div>
               <p
@@ -404,7 +404,7 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
               }}
             >
               <Loader2 size={18} className="animate-spin" />
-              <span>Google Gemini AI đang suy luận và tra cứu kho 100+ sách...</span>
+              <span>Trợ lý AI đang suy luận và tra cứu kho sách...</span>
             </div>
           )}
 
@@ -425,7 +425,7 @@ export default function AiChatbotModal({ isOpen, onClose, onSelectBook }) {
           <input
             type="text"
             className="input-field"
-            placeholder="Hỏi Gemini AI về môn học, đồ án, giáo trình hoặc kỹ năng..."
+            placeholder="Hỏi Trợ lý AI về môn học, đồ án, giáo trình hoặc kỹ năng..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {

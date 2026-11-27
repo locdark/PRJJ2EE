@@ -26,7 +26,7 @@ export default function AnnouncementModal({
   const title = settings?.popupTitle || 'Thông Báo: Khai Trương Kho Sách Số & Tuần Lễ Văn Hóa Đọc 2026';
   const badgeText = settings?.popupBadgeText || 'HOT • BẢN TIN SỐ #1792776375';
   const bannerUrl = settings?.popupBannerUrl || 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1000';
-  const content = settings?.popupContent || 'Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary! Nhằm phục vụ đợt thi học kỳ và nhu cầu nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn/độc giả, miễn phí đọc 100 tài liệu số chuyên ngành. Trợ lý AI Gemini đã sẵn sàng hỗ trợ tra cứu 24/7.';
+  const content = settings?.popupContent || 'Chào mừng quý độc giả đến với Hệ thống Thư viện Số SmartLibrary! Nhằm phục vụ đợt thi học kỳ và nhu cầu nghiên cứu học thuật, Thư viện nâng hạn mức mượn giáo trình lên 5 cuốn/độc giả, miễn phí đọc 100 tài liệu số chuyên ngành. Trợ lý AI đã sẵn sàng hỗ trợ tra cứu 24/7.';
   const linkText = settings?.popupLinkText || 'Xem Kho Sách & Tra Cứu';
 
   return (
